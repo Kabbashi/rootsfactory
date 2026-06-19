@@ -1,0 +1,115 @@
+services:
+    laravel.test:
+        container_name: rootsfactory-app
+        restart: unless-stopped
+        image: 'sail-8.5/app'
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '${APP_PORT:-8212}:80'
+            - '${VITE_PORT:-5176}:${VITE_PORT:-5176}'
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            pgsql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+    pgsql:
+        container_name: rootsfactory-postgres
+        restart: unless-stopped
+        image: 'postgres:18-alpine'
+        ports:
+            - '${FORWARD_DB_PORT:-5436}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'rootsfactory-pgsql:/var/lib/postgresql'
+        networks:
+            - sail
+        healthcheck:
+            test: ['CMD', 'pg_isready', '-q', '-d', '${DB_DATABASE}', '-U', '${DB_USERNAME}']
+            retries: 3
+            timeout: 5s
+
+    redis:
+        container_name: rootsfactory-redis
+        restart: unless-stopped
+        image: 'redis:alpine'
+        ports:
+            - '${FORWARD_REDIS_PORT:-6383}:6379'
+        volumes:
+            - 'rootsfactory-redis:/data'
+        networks:
+            - sail
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            retries: 3
+            timeout: 5s
+
+    scheduler:
+        container_name: rootsfactory-scheduler
+        image: 'sail-8.5/app'
+        restart: unless-stopped
+        command: >
+            sh -c "while true; do
+              php artisan schedule:run --verbose --no-interaction &
+              sleep 60;
+            done"
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            pgsql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+    queue:
+        container_name: rootsfactory-queue
+        image: 'sail-8.5/app'
+        restart: unless-stopped
+        command: php artisan queue:work --tries=3 --backoff=30 --timeout=300 --max-time=3600 --sleep=3 --verbose
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            pgsql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+# Hinweis: Der öffentliche Traefik-Block (Host-Routing rootsfactory.org, TLS via Cloudflare,
+# Security-Header, traefik-public-Netz) wird beim Deploy ergänzt — analog zu conceptnote.
+
+networks:
+    sail:
+        driver: bridge
+        # Festes, freies Subnetz — Docker's Auto-Pick (192.168.16/20) wird auf diesem Host
+        # geblackholt (intra-Bridge-Timeout trotz korrekter DOCKER-FORWARD-Regel).
+        ipam:
+            config:
+                - subnet: 192.168.192.0/20
+
+volumes:
+    rootsfactory-pgsql:
+        driver: local
+    rootsfactory-redis:
+        driver: local
