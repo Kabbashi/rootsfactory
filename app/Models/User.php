@@ -48,4 +48,16 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(Comment::class);
     }
+
+    /**
+     * The identity the AI co-thinker posts under. Password-less, so it can
+     * never be logged into; it only authors comments in discussions.
+     */
+    public static function aiAuthor(): self
+    {
+        return static::firstOrCreate(
+            ['email' => config('ai.author.email')],
+            ['name' => config('ai.author.name'), 'role' => 'system', 'password' => null],
+        );
+    }
 }

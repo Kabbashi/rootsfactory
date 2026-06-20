@@ -1,0 +1,142 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Idea;
+use App\Models\User;
+use Illuminate\Support\Facades\Http;
+
+/**
+ * Roots Factory's AI co-thinker.
+ *
+ * Talks to the shared LiteLLM gateway (OpenAI-compatible) using a logical
+ * role alias — no SDK, just HTTP, so there is no extra composer dependency.
+ * It never decides which provider/model runs; that lives in litellm/config.yaml.
+ */
+class CoThinker
+{
+    private const SYSTEM = <<<'TXT'
+        You are Roots Factory's AI co-thinker, supporting a development-cooperation (EZ) think tank.
+        Your job is to help the team sharpen ideas — not to decide for them.
+        Be concise, concrete and intellectually honest. Write in English, in Markdown.
+        Never invent facts, numbers or citations; if you are unsure, say so plainly.
+        TXT;
+
+    /**
+     * One-line brief of the idea and its discussion.
+     */
+    public function summarize(Idea $idea): string
+    {
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Summarise the idea and its discussion below into a crisp brief: the core proposition, "
+                . "the key points raised, and any open questions. Use short paragraphs or bullets, 120 words max.\n\n"
+                . $this->ideaContext($idea),
+            ],
+        ]);
+    }
+
+    /**
+     * Constructive red team: challenges, risks, blind spots.
+     */
+    public function redTeam(Idea $idea): string
+    {
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Act as a constructive red team for the idea below. Identify the 3–5 strongest challenges, "
+                . "risks, blind spots or counterarguments — one sentence each, as a bullet list. "
+                . "Then end with a line starting \"**Next question:**\" naming the single most important "
+                . "question the team should resolve next.\n\n"
+                . $this->ideaContext($idea),
+            ],
+        ]);
+    }
+
+    /**
+     * Surface related ideas elsewhere in the workspace.
+     */
+    public function relatedIdeas(Idea $idea): string
+    {
+        $others = Idea::query()
+            ->where('id', '!=', $idea->id)
+            ->with('topic')
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        if ($others->isEmpty()) {
+            return 'There are no other ideas in the workspace yet to relate this one to.';
+        }
+
+        $list = $others
+            ->map(fn (Idea $o): string => "#{$o->id} [{$o->topic?->name}] {$o->title}")
+            ->implode("\n");
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Here is the current idea, followed by other ideas in the workspace.\n\n"
+                . "CURRENT IDEA:\n" . $this->ideaContext($idea, withDiscussion: false) . "\n\n"
+                . "OTHER IDEAS (id, [topic], title):\n{$list}\n\n"
+                . "List the ones most genuinely related to the current idea, each as "
+                . "\"#id — one line on how they connect\". If none are clearly related, say so honestly. "
+                . "Do not invent ideas that are not in the list.",
+            ],
+        ]);
+    }
+
+    /**
+     * Low-level chat completion against the LiteLLM gateway.
+     *
+     * @param  array<int, array{role: string, content: string}>  $messages
+     */
+    public function chat(array $messages, int $maxTokens = 700): string
+    {
+        $response = Http::baseUrl(rtrim((string) config('ai.base_url'), '/'))
+            ->withToken((string) config('ai.key'))
+            ->timeout((int) config('ai.timeout', 90))
+            ->acceptJson()
+            ->post('/chat/completions', [
+                'model' => config('ai.model'),
+                'messages' => $messages,
+                'temperature' => 0.4,
+                'max_tokens' => $maxTokens,
+            ])
+            ->throw();
+
+        return trim((string) $response->json('choices.0.message.content'));
+    }
+
+    /**
+     * Render an idea + its human discussion as plain text for the prompt.
+     * AI-authored comments are excluded so the model never feeds on itself.
+     */
+    private function ideaContext(Idea $idea, bool $withDiscussion = true): string
+    {
+        $idea->loadMissing(['topic', 'comments.user']);
+
+        $parts = ["Title: {$idea->title}"];
+
+        if ($idea->topic) {
+            $parts[] = "Topic: {$idea->topic->name}";
+        }
+
+        $parts[] = "Status: {$idea->status}";
+        $parts[] = "\nIdea body:\n" . ($idea->body ?: '(no body written yet)');
+
+        if ($withDiscussion) {
+            $aiAuthorId = User::aiAuthor()->id;
+
+            $discussion = $idea->comments
+                ->where('user_id', '!=', $aiAuthorId)
+                ->map(fn ($c): string => '- ' . ($c->user?->name ?? 'Someone') . ': ' . $c->body)
+                ->implode("\n");
+
+            $parts[] = "\nDiscussion so far:\n" . ($discussion !== '' ? $discussion : '(no comments yet)');
+        }
+
+        return implode("\n", $parts);
+    }
+}
