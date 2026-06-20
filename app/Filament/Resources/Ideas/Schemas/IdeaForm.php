@@ -15,12 +15,12 @@ class IdeaForm
         return $schema
             ->components([
                 TextInput::make('title')
-                    ->label('Titel')
+                    ->label('Title')
                     ->required()
                     ->maxLength(200)
                     ->columnSpanFull(),
                 Select::make('topic_id')
-                    ->label('Thema')
+                    ->label('Topic')
                     ->relationship('topic', 'name')
                     ->searchable()
                     ->preload()
@@ -30,17 +30,17 @@ class IdeaForm
                 Select::make('status')
                     ->label('Status')
                     ->options([
-                        'draft' => 'Entwurf',
-                        'in_discussion' => 'In Diskussion',
-                        'published' => 'Veröffentlicht',
+                        'draft' => 'Draft',
+                        'in_discussion' => 'In discussion',
+                        'published' => 'Published',
                     ])
                     ->default('draft')
                     ->required(),
                 Toggle::make('pinned')
-                    ->label('Angepinnt')
-                    ->helperText('Oben im Feed halten'),
+                    ->label('Pinned')
+                    ->helperText('Keep at the top of the feed'),
                 MarkdownEditor::make('body')
-                    ->label('Inhalt')
+                    ->label('Content')
                     ->columnSpanFull(),
             ]);
     }

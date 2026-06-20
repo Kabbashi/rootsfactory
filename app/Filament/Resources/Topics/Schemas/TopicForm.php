@@ -17,7 +17,7 @@ class TopicForm
                     ->required()
                     ->maxLength(100),
                 Textarea::make('description')
-                    ->label('Beschreibung')
+                    ->label('Description')
                     ->rows(3)
                     ->columnSpanFull(),
             ]);

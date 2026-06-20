@@ -21,24 +21,24 @@ class IdeasTable
                     ->boolean()
                     ->trueIcon('heroicon-s-bookmark')
                     ->falseIcon('')
-                    ->tooltip('Angepinnt'),
+                    ->tooltip('Pinned'),
                 TextColumn::make('title')
-                    ->label('Titel')
+                    ->label('Title')
                     ->weight('medium')
                     ->limit(70)
                     ->searchable()
                     ->wrap(),
                 TextColumn::make('topic.name')
-                    ->label('Thema')
+                    ->label('Topic')
                     ->badge()
                     ->placeholder('—'),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'draft' => 'Entwurf',
-                        'in_discussion' => 'In Diskussion',
-                        'published' => 'Veröffentlicht',
+                        'draft' => 'Draft',
+                        'in_discussion' => 'In discussion',
+                        'published' => 'Published',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
@@ -47,14 +47,14 @@ class IdeasTable
                         default => 'gray',
                     }),
                 TextColumn::make('user.name')
-                    ->label('Von')
+                    ->label('By')
                     ->toggleable(),
                 TextColumn::make('comments_count')
                     ->label('💬')
                     ->counts('comments')
                     ->alignCenter(),
                 TextColumn::make('created_at')
-                    ->label('Erstellt')
+                    ->label('Created')
                     ->since()
                     ->sortable(),
             ])

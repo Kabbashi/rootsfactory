@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Idea extends Model
 {
@@ -16,6 +17,12 @@ class Idea extends Model
         'pinned' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        // Polymorphic comments have no DB-level cascade — clean them up here.
+        static::deleting(fn (Idea $idea) => $idea->comments()->delete());
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -26,9 +33,9 @@ class Idea extends Model
         return $this->belongsTo(Topic::class);
     }
 
-    public function comments(): HasMany
+    public function comments(): MorphMany
     {
-        return $this->hasMany(Comment::class);
+        return $this->morphMany(Comment::class, 'commentable');
     }
 
     public function attachments(): HasMany

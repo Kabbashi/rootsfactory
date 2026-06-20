@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Ideas;
 use App\Filament\Resources\Ideas\Pages\CreateIdea;
 use App\Filament\Resources\Ideas\Pages\EditIdea;
 use App\Filament\Resources\Ideas\Pages\ListIdeas;
-use App\Filament\Resources\Ideas\RelationManagers\CommentsRelationManager;
+use App\Filament\RelationManagers\CommentsRelationManager;
 use App\Filament\Resources\Ideas\Schemas\IdeaForm;
 use App\Filament\Resources\Ideas\Tables\IdeasTable;
 use App\Models\Idea;
@@ -21,9 +21,9 @@ class IdeaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLightBulb;
 
-    protected static ?string $modelLabel = 'Idee';
+    protected static ?string $modelLabel = 'Idea';
 
-    protected static ?string $pluralModelLabel = 'Ideen';
+    protected static ?string $pluralModelLabel = 'Ideas';
 
     protected static ?int $navigationSort = 1;
 

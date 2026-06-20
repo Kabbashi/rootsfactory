@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Topics;
 
+use App\Filament\RelationManagers\CommentsRelationManager;
 use App\Filament\Resources\Topics\Pages\CreateTopic;
 use App\Filament\Resources\Topics\Pages\EditTopic;
 use App\Filament\Resources\Topics\Pages\ListTopics;
@@ -20,9 +21,9 @@ class TopicResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static ?string $modelLabel = 'Thema';
+    protected static ?string $modelLabel = 'Topic';
 
-    protected static ?string $pluralModelLabel = 'Themen';
+    protected static ?string $pluralModelLabel = 'Topics';
 
     protected static ?int $navigationSort = 2;
 
@@ -39,7 +40,7 @@ class TopicResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            CommentsRelationManager::class,
         ];
     }
 

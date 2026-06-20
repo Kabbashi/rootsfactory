@@ -20,12 +20,12 @@ class TopicsTable
                     ->searchable()
                     ->weight('medium'),
                 TextColumn::make('ideas_count')
-                    ->label('Ideen')
+                    ->label('Ideas')
                     ->counts('ideas')
                     ->alignCenter()
                     ->badge(),
                 TextColumn::make('description')
-                    ->label('Beschreibung')
+                    ->label('Description')
                     ->limit(60)
                     ->toggleable(),
             ])

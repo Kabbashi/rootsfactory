@@ -5,14 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Comment extends Model
 {
-    protected $fillable = ['idea_id', 'user_id', 'parent_id', 'body'];
+    protected $fillable = ['commentable_id', 'commentable_type', 'user_id', 'parent_id', 'body'];
 
-    public function idea(): BelongsTo
+    /**
+     * The idea or topic this comment belongs to.
+     */
+    public function commentable(): MorphTo
     {
-        return $this->belongsTo(Idea::class);
+        return $this->morphTo();
     }
 
     public function user(): BelongsTo
