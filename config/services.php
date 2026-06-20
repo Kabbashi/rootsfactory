@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    /*
+    | conceptnote als OIDC-Identity-Provider (SSO Phase B).
+    | rootsfactory ist der Client; nur Mitglieder des conceptnote-Teams
+    | "Free-Spirits" (Claim is_team_member) dürfen in den Workspace.
+    */
+    'conceptnote' => [
+        'issuer' => rtrim(env('CONCEPTNOTE_OIDC_ISSUER', 'https://conceptnote.eu'), '/'),
+        'client_id' => env('CONCEPTNOTE_OIDC_CLIENT_ID'),
+        'client_secret' => env('CONCEPTNOTE_OIDC_CLIENT_SECRET'),
+        'redirect' => env('CONCEPTNOTE_OIDC_REDIRECT_URI'),
+    ],
+
 ];

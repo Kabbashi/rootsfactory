@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -28,6 +29,10 @@ class WorkspacePanelProvider extends PanelProvider
             ->path('workspace')
             ->brandName('Roots Factory')
             ->login()
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn (): string => view('filament.sso-login-button')->render(),
+            )
             ->colors([
                 'primary' => Color::Emerald,
             ])
