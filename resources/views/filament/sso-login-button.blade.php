@@ -9,7 +9,7 @@
         <div class="w-full border-t border-gray-200 dark:border-white/10"></div>
     </div>
     <div class="relative flex justify-center text-xs">
-        <span class="bg-white px-2 text-gray-400 dark:bg-gray-900">{{ __('oder') }}</span>
+        <span class="bg-white px-2 text-gray-400 dark:bg-gray-900">or</span>
     </div>
 </div>
 
@@ -17,9 +17,9 @@
     href="{{ route('sso.conceptnote.redirect') }}"
     class="fi-btn fi-btn-size-md relative grid-flow-col items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold outline-none transition duration-75 focus-visible:ring-2 grid w-full bg-emerald-600 text-white hover:bg-emerald-500 focus-visible:ring-emerald-500/50"
 >
-    Mit conceptnote anmelden
+    Sign in with conceptnote
 </a>
 
 <p class="mt-2 text-center text-xs text-gray-400">
-    Für Mitglieder des conceptnote-Teams „Free-Spirits".
+    For members of the conceptnote team “Free-Spirits”.
 </p>

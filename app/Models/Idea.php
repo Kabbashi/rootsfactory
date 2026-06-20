@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\GenerateAiInsight;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +22,17 @@ class Idea extends Model
     {
         // Polymorphic comments have no DB-level cascade — clean them up here.
         static::deleting(fn (Idea $idea) => $idea->comments()->delete());
+
+        // When an idea opens for discussion, let the co-thinker kick it off
+        // with a summary (opt-out via config('ai.auto_summary')).
+        static::updated(function (Idea $idea): void {
+            if (config('ai.auto_summary')
+                && filled(config('ai.key'))
+                && $idea->wasChanged('status')
+                && $idea->status === 'in_discussion') {
+                GenerateAiInsight::for($idea, 'summarize');
+            }
+        });
     }
 
     public function user(): BelongsTo

@@ -117,6 +117,9 @@ services:
             - '.:/var/www/html'
         networks:
             - sail
+            # The AI co-thinker job (GenerateAiInsight) calls the shared LiteLLM
+            # gateway, which lives on traefik-public — the worker must join it too.
+            - traefik-public
         depends_on:
             pgsql:
                 condition: service_healthy

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Idea;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
@@ -88,6 +89,71 @@ class CoThinker
     }
 
     /**
+     * Synthesise all ideas gathered under a topic.
+     */
+    public function summarizeTopic(Topic $topic): string
+    {
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Synthesise the ideas gathered under this topic into: the main themes, "
+                . "the points of agreement, the open tensions, and the notable gaps worth exploring. "
+                . "Use short headed bullets, 150 words max.\n\n"
+                . $this->topicContext($topic),
+            ],
+        ]);
+    }
+
+    /**
+     * Red team a whole topic: cross-cutting risks and gaps.
+     */
+    public function redTeamTopic(Topic $topic): string
+    {
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Act as a constructive red team for this topic as a whole. Across all the ideas below, "
+                . "identify the 3–5 biggest cross-cutting risks, blind spots or missing perspectives — "
+                . "one sentence each, as a bullet list. Then end with a line starting \"**Next question:**\" "
+                . "naming the single most important question the team should resolve for this topic.\n\n"
+                . $this->topicContext($topic),
+            ],
+        ]);
+    }
+
+    /**
+     * Surface related topics elsewhere in the workspace.
+     */
+    public function relatedTopics(Topic $topic): string
+    {
+        $others = Topic::query()
+            ->where('id', '!=', $topic->id)
+            ->withCount('ideas')
+            ->get();
+
+        if ($others->isEmpty()) {
+            return 'There are no other topics in the workspace yet to relate this one to.';
+        }
+
+        $list = $others
+            ->map(fn (Topic $o): string => "#{$o->id} ({$o->ideas_count} ideas) {$o->name}"
+                . ($o->description ? ' — ' . (string) str($o->description)->limit(80) : ''))
+            ->implode("\n");
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Here is the current topic, followed by other topics in the workspace.\n\n"
+                . "CURRENT TOPIC:\n{$topic->name}" . ($topic->description ? " — {$topic->description}" : '') . "\n\n"
+                . "OTHER TOPICS (id, idea count, name — description):\n{$list}\n\n"
+                . "List the ones most genuinely related to the current topic, each as "
+                . "\"#id — one line on how they connect\". If none are clearly related, say so honestly. "
+                . "Do not invent topics that are not in the list.",
+            ],
+        ]);
+    }
+
+    /**
      * Low-level chat completion against the LiteLLM gateway.
      *
      * @param  array<int, array{role: string, content: string}>  $messages
@@ -135,6 +201,43 @@ class CoThinker
                 ->implode("\n");
 
             $parts[] = "\nDiscussion so far:\n" . ($discussion !== '' ? $discussion : '(no comments yet)');
+        }
+
+        return implode("\n", $parts);
+    }
+
+    /**
+     * Render a topic, its ideas and its own discussion as plain text.
+     * AI-authored comments are excluded so the model never feeds on itself.
+     */
+    private function topicContext(Topic $topic): string
+    {
+        $topic->loadMissing([
+            'ideas' => fn ($q) => $q->latest()->limit(40),
+            'comments.user',
+        ]);
+
+        $parts = ["Topic: {$topic->name}"];
+
+        if ($topic->description) {
+            $parts[] = "Description: {$topic->description}";
+        }
+
+        $ideas = $topic->ideas
+            ->map(fn (Idea $i): string => "- [{$i->status}] {$i->title}: " . (string) str($i->body)->limit(160))
+            ->implode("\n");
+
+        $parts[] = "\nIdeas under this topic:\n" . ($ideas !== '' ? $ideas : '(no ideas yet)');
+
+        $aiAuthorId = User::aiAuthor()->id;
+
+        $discussion = $topic->comments
+            ->where('user_id', '!=', $aiAuthorId)
+            ->map(fn ($c): string => '- ' . ($c->user?->name ?? 'Someone') . ': ' . $c->body)
+            ->implode("\n");
+
+        if ($discussion !== '') {
+            $parts[] = "\nDiscussion on this topic:\n" . $discussion;
         }
 
         return implode("\n", $parts);

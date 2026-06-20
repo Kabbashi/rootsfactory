@@ -23,6 +23,9 @@ return [
 
     'timeout' => (int) env('ROOTSFACTORY_AI_TIMEOUT', 90),
 
+    // Auto-post a summary when an idea moves to "in_discussion".
+    'auto_summary' => (bool) env('ROOTSFACTORY_AI_AUTO_SUMMARY', true),
+
     // Identity the co-thinker posts under in discussions.
     'author' => [
         'email' => env('ROOTSFACTORY_AI_EMAIL', 'ai@rootsfactory.org'),

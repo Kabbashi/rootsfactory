@@ -43,7 +43,7 @@ class EditIdea extends EditRecord
      */
     protected function askAi(string $mode): void
     {
-        GenerateAiInsight::dispatch($this->record->getKey(), $mode);
+        GenerateAiInsight::for($this->record, $mode);
 
         Notification::make()
             ->title('Roots Factory AI is thinking…')

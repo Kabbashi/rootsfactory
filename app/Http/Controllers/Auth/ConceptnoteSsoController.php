@@ -29,7 +29,7 @@ class ConceptnoteSsoController extends Controller
         $config = config('services.conceptnote');
 
         if (empty($config['client_id']) || empty($config['client_secret'])) {
-            abort(500, 'conceptnote-SSO ist nicht konfiguriert (CONCEPTNOTE_OIDC_* fehlt).');
+            abort(500, 'conceptnote SSO is not configured (CONCEPTNOTE_OIDC_* missing).');
         }
 
         $state = Str::random(40);
@@ -65,7 +65,7 @@ class ConceptnoteSsoController extends Controller
 
         // CSRF-/State-Schutz.
         if (! $stored || ! $request->filled('code') || ! hash_equals($stored['state'], (string) $request->query('state'))) {
-            return $this->fail('Login abgebrochen oder ungültiger Status. Bitte erneut versuchen.');
+            return $this->fail('Sign-in was cancelled or the state was invalid. Please try again.');
         }
 
         // Authorization-Code gegen Tokens tauschen (PKCE, client_secret_post).
@@ -79,9 +79,9 @@ class ConceptnoteSsoController extends Controller
         ]);
 
         if (! $tokenResponse->ok() || ! $tokenResponse->json('access_token')) {
-            report(new \RuntimeException('conceptnote-SSO Token-Tausch fehlgeschlagen: ' . $tokenResponse->status() . ' ' . $tokenResponse->body()));
+            report(new \RuntimeException('conceptnote SSO token exchange failed: ' . $tokenResponse->status() . ' ' . $tokenResponse->body()));
 
-            return $this->fail('Anmeldung beim Identity-Provider fehlgeschlagen.');
+            return $this->fail('Sign-in with the identity provider failed.');
         }
 
         // Claims über UserInfo holen (mit dem Access-Token).
@@ -90,16 +90,16 @@ class ConceptnoteSsoController extends Controller
             ->get($config['issuer'] . '/oauth/userinfo');
 
         if (! $userinfo->ok() || ! $userinfo->json('sub')) {
-            report(new \RuntimeException('conceptnote-SSO UserInfo fehlgeschlagen: ' . $userinfo->status() . ' ' . $userinfo->body()));
+            report(new \RuntimeException('conceptnote SSO userinfo failed: ' . $userinfo->status() . ' ' . $userinfo->body()));
 
-            return $this->fail('Profil konnte nicht geladen werden.');
+            return $this->fail('Could not load your profile.');
         }
 
         $claims = $userinfo->json();
 
         // Team-Gate: nur "Free-Spirits"-Mitglieder dürfen in den Workspace.
         if (! ($claims['is_team_member'] ?? false)) {
-            return $this->fail('Dieser Workspace ist dem conceptnote-Team „Free-Spirits" vorbehalten.');
+            return $this->fail('This workspace is reserved for the conceptnote team “Free-Spirits”.');
         }
 
         $user = User::updateOrCreate(
