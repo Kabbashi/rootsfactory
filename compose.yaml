@@ -15,11 +15,38 @@ services:
             - '.:/var/www/html'
         networks:
             - sail
+            - traefik-public
         depends_on:
             pgsql:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+        labels:
+            - "traefik.enable=true"
+            - "traefik.docker.network=traefik-public"
+            # Primary: rootsfactory.org
+            - "traefik.http.routers.rootsfactory.rule=Host(`rootsfactory.org`)"
+            - "traefik.http.routers.rootsfactory.entrypoints=websecure"
+            - "traefik.http.routers.rootsfactory.tls.certresolver=cloudflare"
+            - "traefik.http.services.rootsfactory.loadbalancer.server.port=80"
+            - "traefik.http.routers.rootsfactory.middlewares=rootsfactory-secheaders"
+            # www.rootsfactory.org -> rootsfactory.org (301)
+            - "traefik.http.routers.rootsfactory-www.rule=Host(`www.rootsfactory.org`)"
+            - "traefik.http.routers.rootsfactory-www.entrypoints=websecure"
+            - "traefik.http.routers.rootsfactory-www.tls.certresolver=cloudflare"
+            - "traefik.http.routers.rootsfactory-www.service=rootsfactory"
+            - "traefik.http.routers.rootsfactory-www.middlewares=rootsfactory-www-redir"
+            - "traefik.http.middlewares.rootsfactory-www-redir.redirectregex.regex=^https://www\\.rootsfactory\\.org/(.*)"
+            - "traefik.http.middlewares.rootsfactory-www-redir.redirectregex.replacement=https://rootsfactory.org/$${1}"
+            - "traefik.http.middlewares.rootsfactory-www-redir.redirectregex.permanent=true"
+            # Security headers
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.stsSeconds=31536000"
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.stsIncludeSubdomains=true"
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.stsPreload=true"
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.frameDeny=true"
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.contentTypeNosniff=true"
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.referrerPolicy=strict-origin-when-cross-origin"
+            - "traefik.http.middlewares.rootsfactory-secheaders.headers.browserXssFilter=true"
 
     pgsql:
         container_name: rootsfactory-postgres
@@ -96,9 +123,6 @@ services:
             redis:
                 condition: service_healthy
 
-# Hinweis: Der öffentliche Traefik-Block (Host-Routing rootsfactory.org, TLS via Cloudflare,
-# Security-Header, traefik-public-Netz) wird beim Deploy ergänzt — analog zu conceptnote.
-
 networks:
     sail:
         driver: bridge
@@ -107,6 +131,8 @@ networks:
         ipam:
             config:
                 - subnet: 192.168.192.0/20
+    traefik-public:
+        external: true
 
 volumes:
     rootsfactory-pgsql:
