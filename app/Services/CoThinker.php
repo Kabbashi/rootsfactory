@@ -39,6 +39,26 @@ class CoThinker
     }
 
     /**
+     * Expand a short idea into a fuller, structured brief — without inventing
+     * any facts, figures, places or citations. Returns Markdown for the body.
+     */
+    public function expand(Idea $idea): string
+    {
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Expand the idea below into a fuller policy brief of roughly 300–450 words, "
+                . "drawing on the idea and its discussion. Structure it with these Markdown H2 headings:\n"
+                . "## The problem\n## The proposal\n## How it works\n## Who is involved\n## Open questions\n\n"
+                . "Hard rules: do NOT invent statistics, monetary figures, dates, named organisations, "
+                . "specific places or citations that are not already in the material. Keep it a proposal "
+                . "(\"could\", \"would\", \"proposes\"), not a claim of fact. Stay faithful to the original intent.\n\n"
+                . $this->ideaContext($idea),
+            ],
+        ], maxTokens: 900);
+    }
+
+    /**
      * Constructive red team: challenges, risks, blind spots.
      */
     public function redTeam(Idea $idea): string
