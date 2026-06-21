@@ -8,15 +8,25 @@
         <a href="{{ route('publications.index') }}" class="text-sm font-medium text-root-600 hover:text-root-900">← All publications</a>
 
         <header class="mt-6 border-b border-root-100 pb-8">
-            @if ($idea->topic)
-                <a href="{{ route('publications.index', ['topic' => $idea->topic->slug]) }}"
-                   class="text-xs font-semibold uppercase tracking-wide text-root-600 hover:text-root-900">
-                    {{ $idea->topic->name }}
-                </a>
-            @endif
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full bg-root-800 px-3 py-1 text-xs font-semibold text-root-50">{{ $idea->typeLabel() }}</span>
+                @if ($idea->topic)
+                    <a href="{{ route('publications.index', ['topic' => $idea->topic->slug]) }}"
+                       class="text-xs font-semibold uppercase tracking-wide text-root-600 hover:text-root-900">{{ $idea->topic->name }}</a>
+                @endif
+                @if ($idea->region)
+                    <a href="{{ route('publications.index', ['region' => $idea->region->slug]) }}"
+                       class="text-xs text-root-600 hover:text-root-900">· {{ $idea->region->name }}</a>
+                @endif
+            </div>
             <h1 class="mt-3 font-serif text-4xl font-bold leading-tight text-root-900">{{ $idea->title }}</h1>
             <p class="mt-4 text-sm text-root-600">
-                By {{ $idea->user?->name ?? 'Roots Factory' }}
+                By
+                @if ($idea->user)
+                    <a href="{{ route('people.show', $idea->user) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $idea->user->name }}</a>
+                @else
+                    Roots Factory
+                @endif
                 @if ($idea->published_at)
                     · Published {{ $idea->published_at->format('j F Y') }}
                 @endif

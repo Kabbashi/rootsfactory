@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Ideas\Schemas;
 
+use App\Models\Idea;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -27,6 +28,20 @@ class IdeaForm
                     ->createOptionForm([
                         TextInput::make('name')->required(),
                     ]),
+                Select::make('region_id')
+                    ->label('Region')
+                    ->relationship('region', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->placeholder('Global / unspecified')
+                    ->createOptionForm([
+                        TextInput::make('name')->required(),
+                    ]),
+                Select::make('type')
+                    ->label('Type')
+                    ->options(Idea::TYPES)
+                    ->default('brief')
+                    ->required(),
                 Select::make('status')
                     ->label('Status')
                     ->options([

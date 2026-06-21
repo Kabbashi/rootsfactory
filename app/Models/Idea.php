@@ -14,7 +14,15 @@ class Idea extends Model
 {
     public const STATUSES = ['draft', 'in_discussion', 'published'];
 
-    protected $fillable = ['user_id', 'topic_id', 'title', 'slug', 'body', 'status', 'published_at', 'pinned'];
+    /** Publication types, mapped to their human label (also the badge text). */
+    public const TYPES = [
+        'brief' => 'Policy brief',
+        'analysis' => 'Analysis',
+        'report' => 'Report',
+        'note' => 'Field note',
+    ];
+
+    protected $fillable = ['user_id', 'topic_id', 'region_id', 'title', 'slug', 'type', 'body', 'status', 'published_at', 'pinned'];
 
     protected $casts = [
         'pinned' => 'boolean',
@@ -87,6 +95,17 @@ class Idea extends Model
     public function topic(): BelongsTo
     {
         return $this->belongsTo(Topic::class);
+    }
+
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    /** The human label for this publication's type. */
+    public function typeLabel(): string
+    {
+        return self::TYPES[$this->type] ?? self::TYPES['brief'];
     }
 
     public function comments(): MorphMany

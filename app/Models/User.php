@@ -12,8 +12,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'password', 'role', 'sso_subject'])]
+#[Fillable(['name', 'slug', 'title', 'bio', 'email', 'password', 'role', 'sso_subject'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -26,6 +27,30 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if (blank($user->slug) && filled($user->name)) {
+                $base = Str::slug($user->name) ?: 'member';
+                $slug = $base;
+                $i = 2;
+
+                while (static::where('slug', $slug)->whereKeyNot($user->getKey())->exists()) {
+                    $slug = "{$base}-{$i}";
+                    $i++;
+                }
+
+                $user->slug = $slug;
+            }
+        });
+    }
+
+    /** Public author profiles are slug-based. */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 
     /** Workspace is open to every authenticated team member. */
@@ -42,6 +67,18 @@ class User extends Authenticatable implements FilamentUser
     public function ideas(): HasMany
     {
         return $this->hasMany(Idea::class);
+    }
+
+    /** This author's ideas that are public, newest first. */
+    public function publishedIdeas(): HasMany
+    {
+        return $this->ideas()->published()->latest('published_at');
+    }
+
+    /** Only authors with at least one published idea get a public profile. */
+    public function isPublicAuthor(): bool
+    {
+        return $this->ideas()->published()->exists();
     }
 
     public function comments(): HasMany

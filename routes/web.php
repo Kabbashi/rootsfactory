@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 // The public front door is the think-tank's published work.
 Route::get('/', [PublicationController::class, 'index'])->name('publications.index');
 Route::get('/publications/{idea}', [PublicationController::class, 'show'])->name('publications.show');
+Route::get('/people/{user}', [PublicationController::class, 'person'])->name('people.show');
 
 // SSO gegen den conceptnote-OIDC-Provider (Phase B).
 Route::get('/auth/conceptnote/redirect', [ConceptnoteSsoController::class, 'redirect'])
