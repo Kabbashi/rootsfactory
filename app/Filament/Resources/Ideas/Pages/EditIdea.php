@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Ideas\Pages;
 
 use App\Filament\Resources\Ideas\IdeaResource;
 use App\Jobs\GenerateAiInsight;
+use App\Services\CoThinker;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -30,12 +31,33 @@ class EditIdea extends EditRecord
                     ->label('Find related ideas')
                     ->icon('heroicon-m-link')
                     ->action(fn () => $this->askAi('related')),
+                Action::make('ai_expand')
+                    ->label('Expand into a brief')
+                    ->icon('heroicon-m-arrows-pointing-out')
+                    ->action(fn () => $this->expandBrief()),
             ])
                 ->label('Ask AI')
                 ->icon('heroicon-m-sparkles')
                 ->button(),
             DeleteAction::make(),
         ];
+    }
+
+    /**
+     * Grow the body into a structured brief. The draft is loaded into the
+     * editor but NOT saved — the author reviews and Saves it themselves, so
+     * AI text never reaches the public site without a human in the loop.
+     */
+    protected function expandBrief(): void
+    {
+        $this->record->body = app(CoThinker::class)->expand($this->record);
+        $this->refreshFormData(['body']);
+
+        Notification::make()
+            ->title('Draft expanded — review and Save')
+            ->body('Roots Factory AI rewrote the body into a structured brief. Check it over, edit anything, then Save to keep it. Nothing is stored until you do.')
+            ->success()
+            ->send();
     }
 
     /**
