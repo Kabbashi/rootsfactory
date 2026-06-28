@@ -63,7 +63,7 @@ class Portal extends Page
             ],
             [
                 'name' => 'Knowledge Center',
-                'description' => 'Published library, topics and regions.',
+                'description' => 'FAQ, document library, topics and regions.',
                 'icon' => 'heroicon-o-book-open',
                 'color' => 'indigo',
                 'url' => RegionResource::getUrl(),
