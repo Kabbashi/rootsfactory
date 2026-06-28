@@ -21,6 +21,8 @@ class IdeaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLightBulb;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Innovation Hub';
+
     protected static ?string $modelLabel = 'Idea';
 
     protected static ?string $pluralModelLabel = 'Ideas';
