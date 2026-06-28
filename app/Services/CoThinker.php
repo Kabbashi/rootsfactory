@@ -174,6 +174,33 @@ class CoThinker
     }
 
     /**
+     * Answer a public question grounded ONLY in the given published sources,
+     * citing them inline as [1], [2]… No outside knowledge, no invented facts.
+     *
+     * @param  \Illuminate\Support\Collection<int, \App\Models\Idea>  $sources
+     */
+    public function answerQuestion(string $question, $sources): string
+    {
+        $context = $sources->values()
+            ->map(fn (Idea $idea, int $i): string => '[' . ($i + 1) . '] ' . $idea->title . "\n"
+                . (string) str(strip_tags(\Illuminate\Support\Str::markdown($idea->body ?? '')))->limit(1200))
+            ->implode("\n\n");
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "Answer the question using ONLY the numbered sources below — they are Roots Factory's "
+                . "own published briefs. Cite the sources you draw on inline as [1], [2], matching their "
+                . "numbers. If the sources do not contain enough to answer, say so plainly and do not guess. "
+                . "Use no knowledge beyond these sources, and never invent facts, figures or citations. "
+                . "Be concise (under 200 words) and write in Markdown.\n\n"
+                . "QUESTION:\n{$question}\n\n"
+                . "SOURCES:\n{$context}",
+            ],
+        ]);
+    }
+
+    /**
      * Low-level chat completion against the LiteLLM gateway.
      *
      * @param  array<int, array{role: string, content: string}>  $messages
