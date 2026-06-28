@@ -201,6 +201,48 @@ class CoThinker
     }
 
     /**
+     * Free-form thinking partner for the Agent Center. Helps the team explore
+     * a question or draft something — honest about uncertainty, no invented
+     * facts. The workspace's topics are offered as light context.
+     */
+    public function brainstorm(string $prompt): string
+    {
+        $topics = Topic::query()->pluck('name')->implode(', ');
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                ($topics !== '' ? "For context, the think tank currently works on these topics: {$topics}.\n\n" : '')
+                . $prompt,
+            ],
+        ], maxTokens: 900);
+    }
+
+    /**
+     * Suggest *types* of funders and programmes the team could research, based
+     * on its themes. Deliberately avoids naming specific calls, deadlines or
+     * amounts — those would only be hallucinated. Returns Markdown bullets.
+     */
+    public function suggestFunding(?string $focus = null): string
+    {
+        $topics = Topic::query()->pluck('name')->implode(', ');
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "This development-cooperation think tank works on these topics: "
+                . ($topics !== '' ? $topics : '(none recorded yet)') . ".\n"
+                . ($focus ? "Current focus: {$focus}.\n" : '')
+                . "\nSuggest 5–8 concrete TYPES of funders or funding programmes worth researching "
+                . "(e.g. EU programmes, multilateral funds, private foundations, bilateral donors). "
+                . "For each: a one-line note on why it fits and where to start looking. "
+                . "HARD RULE: do NOT invent specific call names, deadlines, monetary amounts or URLs — "
+                . "these are research leads, not real opportunities. Markdown bullet list.",
+            ],
+        ]);
+    }
+
+    /**
      * Low-level chat completion against the LiteLLM gateway.
      *
      * @param  array<int, array{role: string, content: string}>  $messages

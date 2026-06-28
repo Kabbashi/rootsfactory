@@ -2,7 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\Funding\FundingResource;
 use App\Filament\Resources\Ideas\IdeaResource;
+use App\Filament\Resources\Opportunities\OpportunityResource;
 use App\Filament\Resources\Regions\RegionResource;
 use App\Filament\Resources\Users\UserResource;
 use BackedEnum;
@@ -69,27 +71,27 @@ class Portal extends Page
             ],
             [
                 'name' => 'Funding Center',
-                'description' => 'Grants and funding opportunities.',
+                'description' => 'Grants and donor calls, with AI leads.',
                 'icon' => 'heroicon-o-banknotes',
                 'color' => 'green',
-                'url' => null,
-                'ready' => false,
+                'url' => FundingResource::getUrl(),
+                'ready' => true,
             ],
             [
                 'name' => 'Opportunity Center',
                 'description' => 'Tenders, calls and partnerships.',
                 'icon' => 'heroicon-o-briefcase',
                 'color' => 'orange',
-                'url' => null,
-                'ready' => false,
+                'url' => OpportunityResource::getUrl(),
+                'ready' => true,
             ],
             [
                 'name' => 'Agent Center',
-                'description' => 'AI co-thinkers and automated assistants.',
+                'description' => 'Think with Roots Factory AI.',
                 'icon' => 'heroicon-o-cpu-chip',
                 'color' => 'violet',
-                'url' => null,
-                'ready' => false,
+                'url' => AgentCenter::getUrl(),
+                'ready' => true,
             ],
             [
                 'name' => 'Board Room',

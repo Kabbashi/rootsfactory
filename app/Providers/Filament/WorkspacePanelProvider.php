@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Filament\Pages\AgentCenter;
 use App\Filament\Pages\ExecutiveCenter;
 use App\Filament\Pages\Portal;
 use Filament\Panel;
@@ -43,6 +44,7 @@ class WorkspacePanelProvider extends PanelProvider
             ->pages([
                 Portal::class,
                 ExecutiveCenter::class,
+                AgentCenter::class,
             ])
             // Group icons are intentionally omitted: Filament forbids a group
             // and its items both having icons. The resources keep their icons,
@@ -51,6 +53,9 @@ class WorkspacePanelProvider extends PanelProvider
                 'Executive Center',
                 'Innovation Hub',
                 'Knowledge Center',
+                'Funding Center',
+                'Opportunity Center',
+                'Agent Center',
                 'Board Room',
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
