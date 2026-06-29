@@ -9,23 +9,38 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'slug', 'title', 'bio', 'email', 'password', 'role', 'sso_subject'])]
+#[Fillable(['name', 'slug', 'title', 'bio', 'email', 'password', 'role', 'sso_subject',
+    'expertise', 'country_experience', 'languages', 'method_competencies'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    /** Global academic roles, mapped to their human label. */
+    public const ROLES = [
+        'researcher' => 'Researcher',
+        'author' => 'Author',
+        'reviewer' => 'Reviewer',
+        'editor' => 'Editor',
+        'admin' => 'Administrator',
+    ];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'expertise' => 'array',
+            'country_experience' => 'array',
+            'languages' => 'array',
+            'method_competencies' => 'array',
         ];
     }
 
@@ -64,21 +79,58 @@ class User extends Authenticatable implements FilamentUser
         return in_array($this->role, ['editor', 'admin'], true);
     }
 
+    public function isReviewer(): bool
+    {
+        return in_array($this->role, ['reviewer', 'editor', 'admin'], true);
+    }
+
+    /** Editorial staff: editors and admins. */
+    public function isStaff(): bool
+    {
+        return $this->isEditor();
+    }
+
     public function ideas(): HasMany
     {
         return $this->hasMany(Idea::class);
     }
 
-    /** This author's ideas that are public, newest first. */
-    public function publishedIdeas(): HasMany
+    /** Research projects this member belongs to. */
+    public function projects(): BelongsToMany
     {
-        return $this->ideas()->published()->latest('published_at');
+        return $this->belongsToMany(ResearchProject::class, 'project_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
-    /** Only authors with at least one published idea get a public profile. */
+    /** Publications this member has authored. */
+    public function publications(): BelongsToMany
+    {
+        return $this->belongsToMany(Publication::class, 'publication_author')
+            ->withPivot('role', 'order')
+            ->withTimestamps();
+    }
+
+    /** This author's publications that are public, newest first. */
+    public function publishedPublications(): BelongsToMany
+    {
+        return $this->publications()->where('status', 'published')->orderByDesc('published_at');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
+    }
+
+    /** Only authors with at least one published publication get a public profile. */
     public function isPublicAuthor(): bool
     {
-        return $this->ideas()->published()->exists();
+        return $this->publications()->where('status', 'published')->exists();
     }
 
     public function comments(): HasMany

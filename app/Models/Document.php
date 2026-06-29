@@ -8,8 +8,20 @@ use Illuminate\Support\Facades\Storage;
 
 class Document extends Model
 {
+    /** Knowledge Library category, mapped to its human label. */
+    public const KINDS = [
+        'method' => 'Method',
+        'guide' => 'Interview guide',
+        'instrument' => 'Research instrument',
+        'framework' => 'Framework',
+        'case_study' => 'Case study',
+        'literature' => 'Literature',
+        'handbook' => 'Handbook',
+        'template' => 'Template',
+    ];
+
     protected $fillable = [
-        'title', 'description', 'path', 'original_name', 'mime', 'size',
+        'title', 'kind', 'description', 'path', 'original_name', 'mime', 'size',
         'topic_id', 'region_id', 'user_id',
     ];
 
