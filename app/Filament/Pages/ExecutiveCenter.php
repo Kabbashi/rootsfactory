@@ -15,11 +15,11 @@ class ExecutiveCenter extends Dashboard
 {
     protected static string $routePath = '/executive';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Executive Center';
+    protected static string|\UnitEnum|null $navigationGroup = 'Overview';
 
-    protected static ?string $navigationLabel = 'Overview';
+    protected static ?string $navigationLabel = 'Dashboard';
 
-    protected static ?string $title = 'Executive Center';
+    protected static ?string $title = 'Overview';
 
     protected static ?int $navigationSort = 1;
 

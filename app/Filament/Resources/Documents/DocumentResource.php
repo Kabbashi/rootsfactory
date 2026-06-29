@@ -26,15 +26,15 @@ class DocumentResource extends Resource
 {
     protected static ?string $model = Document::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Knowledge Center';
+    protected static string|\UnitEnum|null $navigationGroup = 'Knowledge Library';
 
-    protected static ?string $modelLabel = 'Document';
+    protected static ?string $modelLabel = 'Library entry';
 
-    protected static ?string $pluralModelLabel = 'Library';
+    protected static ?string $pluralModelLabel = 'Knowledge Library';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
@@ -56,6 +56,11 @@ class DocumentResource extends Resource
                 ->maxLength(200)
                 ->placeholder('Defaults to the file name')
                 ->columnSpanFull(),
+            Select::make('kind')
+                ->label('Category')
+                ->options(Document::KINDS)
+                ->default('literature')
+                ->required(),
             Select::make('topic_id')
                 ->label('Topic')
                 ->relationship('topic', 'name')
@@ -83,6 +88,11 @@ class DocumentResource extends Resource
                     ->limit(60)
                     ->searchable()
                     ->wrap(),
+                TextColumn::make('kind')
+                    ->label('Category')
+                    ->badge()
+                    ->color('info')
+                    ->formatStateUsing(fn (?string $state): string => Document::KINDS[$state] ?? '—'),
                 TextColumn::make('mime')
                     ->label('Type')
                     ->badge()
@@ -116,6 +126,9 @@ class DocumentResource extends Resource
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('kind')
+                    ->label('Category')
+                    ->options(Document::KINDS),
                 SelectFilter::make('mime')
                     ->label('Type')
                     ->options([

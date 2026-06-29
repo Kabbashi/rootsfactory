@@ -21,13 +21,13 @@ class IdeaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLightBulb;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Innovation Hub';
+    protected static string|\UnitEnum|null $navigationGroup = 'Research';
 
-    protected static ?string $modelLabel = 'Idea';
+    protected static ?string $modelLabel = 'Concept note';
 
-    protected static ?string $pluralModelLabel = 'Ideas';
+    protected static ?string $pluralModelLabel = 'Concept notes';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

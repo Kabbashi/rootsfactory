@@ -37,7 +37,8 @@ class WorkspacePanelProvider extends PanelProvider
                 fn (): string => view('filament.sso-login-button')->render(),
             )
             ->colors([
-                'primary' => Color::Emerald,
+                // A calm, academic palette — quiet indigo, not startup green.
+                'primary' => Color::Indigo,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -50,13 +51,15 @@ class WorkspacePanelProvider extends PanelProvider
             // and its items both having icons. The resources keep their icons,
             // so the groups carry only a label and ordering.
             ->navigationGroups([
-                'Executive Center',
-                'Innovation Hub',
-                'Knowledge Center',
-                'Funding Center',
-                'Opportunity Center',
-                'Agent Center',
-                'Board Room',
+                'Overview',
+                'Research',
+                'Publications',
+                'Data Hub',
+                'Knowledge Library',
+                'Community',
+                'Editorial Office',
+                'Help & Taxonomy',
+                'AI Assistant',
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

@@ -21,7 +21,7 @@ class TopicResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Innovation Hub';
+    protected static string|\UnitEnum|null $navigationGroup = 'Help & Taxonomy';
 
     protected static ?string $modelLabel = 'Topic';
 

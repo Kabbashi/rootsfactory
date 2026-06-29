@@ -20,7 +20,7 @@ class RegionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedGlobeAlt;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Knowledge Center';
+    protected static string|\UnitEnum|null $navigationGroup = 'Help & Taxonomy';
 
     protected static ?string $modelLabel = 'Region';
 

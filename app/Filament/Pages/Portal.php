@@ -2,20 +2,19 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Resources\Funding\FundingResource;
-use App\Filament\Resources\Ideas\IdeaResource;
-use App\Filament\Resources\Opportunities\OpportunityResource;
-use App\Filament\Resources\Regions\RegionResource;
+use App\Filament\Resources\DataItems\DataItemResource;
+use App\Filament\Resources\Documents\DocumentResource;
+use App\Filament\Resources\Publications\PublicationResource;
+use App\Filament\Resources\ResearchProjects\ResearchProjectResource;
 use App\Filament\Resources\Users\UserResource;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * The think-tank portal: the front door of the workspace. It presents the
- * eight Centers as tiles. Centers backed by real features link straight to
- * them; the rest are shown as "coming soon" so the map is honest about what
- * already works.
+ * The portal front door: a calm map of the workspace. Each tile leads to one
+ * area of the research platform — from the collaborative project space to the
+ * editorial office and the public-facing Q&A.
  */
 class Portal extends Page
 {
@@ -25,12 +24,12 @@ class Portal extends Page
 
     protected static ?string $navigationLabel = 'Portal';
 
-    protected static ?string $title = 'Roots Factory Portal';
+    protected static ?string $title = 'Roots Factory';
 
     protected string $view = 'filament.pages.portal';
 
     /**
-     * The eight Centers, in display order.
+     * The areas of the workspace, in display order.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -38,68 +37,58 @@ class Portal extends Page
     {
         return [
             [
-                'name' => 'Executive Center',
-                'description' => 'Overview, signals and decisions at a glance.',
+                'name' => 'Overview',
+                'description' => 'My projects, tasks and work in review.',
                 'icon' => 'heroicon-o-presentation-chart-line',
-                'color' => 'emerald',
                 'url' => ExecutiveCenter::getUrl(),
-                'ready' => true,
             ],
             [
-                'name' => 'Innovation Hub',
-                'description' => 'Capture ideas, think out loud, shape briefs.',
-                'icon' => 'heroicon-o-light-bulb',
-                'color' => 'amber',
-                'url' => IdeaResource::getUrl(),
-                'ready' => true,
-            ],
-            [
-                'name' => 'Research Center',
-                'description' => 'Ask questions, get answers grounded in our briefs.',
+                'name' => 'Research',
+                'description' => 'Projects, field studies, baselines and evaluations.',
                 'icon' => 'heroicon-o-beaker',
-                'color' => 'sky',
-                'url' => url('/ask'),
-                'ready' => true,
+                'url' => ResearchProjectResource::getUrl(),
             ],
             [
-                'name' => 'Knowledge Center',
-                'description' => 'FAQ, document library, topics and regions.',
+                'name' => 'Publications',
+                'description' => 'Papers, briefs, essays — with versions and review.',
+                'icon' => 'heroicon-o-document-text',
+                'url' => PublicationResource::getUrl(),
+            ],
+            [
+                'name' => 'Data Hub',
+                'description' => 'Transcripts, field notes and qualitative coding.',
+                'icon' => 'heroicon-o-clipboard-document-list',
+                'url' => DataItemResource::getUrl(),
+            ],
+            [
+                'name' => 'Knowledge Library',
+                'description' => 'Methods, instruments, frameworks and templates.',
                 'icon' => 'heroicon-o-book-open',
-                'color' => 'indigo',
-                'url' => RegionResource::getUrl(),
-                'ready' => true,
+                'url' => DocumentResource::getUrl(),
             ],
             [
-                'name' => 'Funding Center',
-                'description' => 'Grants and donor calls, with AI leads.',
-                'icon' => 'heroicon-o-banknotes',
-                'color' => 'green',
-                'url' => FundingResource::getUrl(),
-                'ready' => true,
-            ],
-            [
-                'name' => 'Opportunity Center',
-                'description' => 'Tenders, calls and partnerships.',
-                'icon' => 'heroicon-o-briefcase',
-                'color' => 'orange',
-                'url' => OpportunityResource::getUrl(),
-                'ready' => true,
-            ],
-            [
-                'name' => 'Agent Center',
-                'description' => 'Think with Roots Factory AI.',
-                'icon' => 'heroicon-o-cpu-chip',
-                'color' => 'violet',
-                'url' => AgentCenter::getUrl(),
-                'ready' => true,
-            ],
-            [
-                'name' => 'Board Room',
-                'description' => 'People, governance and decisions.',
+                'name' => 'Community',
+                'description' => 'The network of researchers and their profiles.',
                 'icon' => 'heroicon-o-user-group',
-                'color' => 'rose',
                 'url' => UserResource::getUrl(),
-                'ready' => true,
+            ],
+            [
+                'name' => 'Editorial Office',
+                'description' => 'The path from draft to published.',
+                'icon' => 'heroicon-o-clipboard-document-check',
+                'url' => EditorialOffice::getUrl(),
+            ],
+            [
+                'name' => 'Research Q&A',
+                'description' => 'Questions answered from our published briefs.',
+                'icon' => 'heroicon-o-chat-bubble-left-right',
+                'url' => url('/ask'),
+            ],
+            [
+                'name' => 'AI Assistant',
+                'description' => 'Think with assistive AI — never decides for you.',
+                'icon' => 'heroicon-o-cpu-chip',
+                'url' => AgentCenter::getUrl(),
             ],
         ];
     }

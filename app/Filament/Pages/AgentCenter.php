@@ -18,11 +18,11 @@ class AgentCenter extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCpuChip;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Agent Center';
+    protected static string|\UnitEnum|null $navigationGroup = 'AI Assistant';
 
-    protected static ?string $navigationLabel = 'AI Workspace';
+    protected static ?string $navigationLabel = 'AI Assistant';
 
-    protected static ?string $title = 'Agent Center';
+    protected static ?string $title = 'AI Assistant';
 
     protected static ?int $navigationSort = 1;
 
