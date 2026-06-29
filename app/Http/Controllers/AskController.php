@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Idea;
+use App\Models\Publication;
 use App\Services\CoThinker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -43,17 +43,17 @@ class AskController extends Controller
     }
 
     /**
-     * Top published briefs matching the question, ranked by full-text relevance.
+     * Top published publications matching the question, ranked by full-text relevance.
      *
-     * @return \Illuminate\Support\Collection<int, Idea>
+     * @return \Illuminate\Support\Collection<int, Publication>
      */
     private function search(string $question): \Illuminate\Support\Collection
     {
-        $tsv = "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(body, ''))";
+        $tsv = "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(abstract, '') || ' ' || coalesce(body, ''))";
 
-        return Idea::published()
-            ->with(['user', 'topic'])
-            ->selectRaw("ideas.*, ts_rank({$tsv}, plainto_tsquery('english', ?)) as rank", [$question])
+        return Publication::published()
+            ->with('authors')
+            ->selectRaw("publications.*, ts_rank({$tsv}, plainto_tsquery('english', ?)) as rank", [$question])
             ->whereRaw("{$tsv} @@ plainto_tsquery('english', ?)", [$question])
             ->orderByDesc('rank')
             ->limit(5)

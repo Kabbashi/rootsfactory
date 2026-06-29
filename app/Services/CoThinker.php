@@ -182,8 +182,10 @@ class CoThinker
     public function answerQuestion(string $question, $sources): string
     {
         $context = $sources->values()
-            ->map(fn (Idea $idea, int $i): string => '[' . ($i + 1) . '] ' . $idea->title . "\n"
-                . (string) str(strip_tags(\Illuminate\Support\Str::markdown($idea->body ?? '')))->limit(1200))
+            ->map(fn ($source, int $i): string => '[' . ($i + 1) . '] ' . $source->title . "\n"
+                . (string) str(strip_tags(\Illuminate\Support\Str::markdown(
+                    $source->abstract ?? $source->body ?? ''
+                )))->limit(1200))
             ->implode("\n\n");
 
         return $this->chat([

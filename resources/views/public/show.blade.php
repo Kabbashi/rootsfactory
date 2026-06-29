@@ -1,49 +1,53 @@
 @extends('public.layout')
 
-@section('title', $idea->title)
-@section('description', Str::limit(strip_tags(\Illuminate\Support\Str::markdown($idea->body ?? '')), 155))
+@section('title', $publication->title)
+@section('description', Str::limit(strip_tags(\Illuminate\Support\Str::markdown($publication->abstract ?? $publication->body ?? '')), 155))
 
 @section('content')
     <article class="mx-auto max-w-3xl px-6 py-14">
         <a href="{{ route('publications.index') }}" class="text-sm font-medium text-root-600 hover:text-root-900">← All publications</a>
 
         <header class="mt-6 border-b border-root-100 pb-8">
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="rounded-full bg-root-800 px-3 py-1 text-xs font-semibold text-root-50">{{ $idea->typeLabel() }}</span>
-                @if ($idea->topic)
-                    <a href="{{ route('publications.index', ['topic' => $idea->topic->slug]) }}"
-                       class="text-xs font-semibold uppercase tracking-wide text-root-600 hover:text-root-900">{{ $idea->topic->name }}</a>
-                @endif
-                @if ($idea->region)
-                    <a href="{{ route('publications.index', ['region' => $idea->region->slug]) }}"
-                       class="text-xs text-root-600 hover:text-root-900">· {{ $idea->region->name }}</a>
-                @endif
-            </div>
-            <h1 class="mt-3 font-serif text-4xl font-bold leading-tight text-root-900">{{ $idea->title }}</h1>
+            <span class="rounded-full bg-root-800 px-3 py-1 text-xs font-semibold text-root-50">{{ $publication->typeLabel() }}</span>
+            <h1 class="mt-3 font-serif text-4xl font-bold leading-tight text-root-900">{{ $publication->title }}</h1>
             <p class="mt-4 text-sm text-root-600">
                 By
-                @if ($idea->user)
-                    <a href="{{ route('people.show', $idea->user) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $idea->user->name }}</a>
+                @if ($publication->authors->isNotEmpty())
+                    @foreach ($publication->authors as $author)<a href="{{ route('people.show', $author) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $author->name }}</a>@if (! $loop->last), @endif @endforeach
                 @else
                     Roots Factory
                 @endif
-                @if ($idea->published_at)
-                    · Published {{ $idea->published_at->format('j F Y') }}
-                @endif
+                @if ($publication->published_at) · Published {{ $publication->published_at->format('j F Y') }} @endif
             </p>
+            @if ($publication->project)
+                <p class="mt-2 text-sm text-root-600">
+                    From the project <a href="{{ route('research.show', $publication->project) }}" class="text-root-700 hover:underline">{{ $publication->project->title }}</a>
+                </p>
+            @endif
         </header>
 
+        @if ($publication->abstract)
+            <div class="mt-8 rounded-2xl bg-root-100/50 px-6 py-5">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-root-600">Abstract</h2>
+                <p class="mt-2 text-root-800">{{ $publication->abstract }}</p>
+            </div>
+        @endif
+
         <div class="prose mt-8 max-w-none">
-            {!! \Illuminate\Support\Str::markdown($idea->body ?? '_No content._') !!}
+            {!! \Illuminate\Support\Str::markdown($publication->body ?? '_No content yet._') !!}
         </div>
 
-        <footer class="mt-12 rounded-2xl bg-root-100/50 px-6 py-6 text-sm text-root-700">
-            <p class="font-serif text-base text-root-800">From the workshop to the world.</p>
-            <p class="mt-1">
-                This brief grew out of an internal discussion in the Roots Factory team workspace.
-                <a href="{{ url('/workspace') }}" class="font-medium text-root-800 underline">Join the conversation →</a>
-            </p>
-        </footer>
+        @if ($publication->citation || $publication->doi)
+            <footer class="mt-12 rounded-2xl border border-root-100 px-6 py-6 text-sm text-root-700">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-root-600">How to cite</h2>
+                @if ($publication->citation)
+                    <p class="mt-2">{{ $publication->citation }}</p>
+                @endif
+                @if ($publication->doi)
+                    <p class="mt-1 font-mono text-xs">{{ $publication->doi }}</p>
+                @endif
+            </footer>
+        @endif
     </article>
 
     @if ($related->isNotEmpty())

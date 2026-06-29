@@ -49,9 +49,12 @@
                 <span class="text-2xl">🌱</span> Roots Factory
             </a>
             <nav class="flex items-center gap-6 text-sm font-medium text-root-700">
+                <a href="{{ route('research.index') }}" class="hover:text-root-900">Research</a>
                 <a href="{{ route('publications.index') }}" class="hover:text-root-900">Publications</a>
+                <a href="{{ route('community.index') }}" class="hover:text-root-900">Community</a>
+                <a href="{{ route('about') }}" class="hover:text-root-900">About</a>
                 <a href="{{ route('ask') }}" class="hover:text-root-900">Ask</a>
-                <a href="{{ url('/workspace') }}" class="rounded-full bg-root-800 px-4 py-2 text-root-50 hover:bg-root-900">Team workspace →</a>
+                <a href="{{ url('/workspace') }}" class="rounded-full bg-root-800 px-4 py-2 text-root-50 hover:bg-root-900">Workspace →</a>
             </nav>
         </div>
     </header>

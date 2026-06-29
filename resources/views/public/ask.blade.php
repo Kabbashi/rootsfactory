@@ -53,13 +53,13 @@
                 <div class="mt-10 border-t border-root-100 pt-6">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-root-600">Sources</h2>
                     <ol class="mt-4 space-y-3">
-                        @foreach ($sources as $i => $idea)
+                        @foreach ($sources as $i => $publication)
                             <li class="flex gap-3">
                                 <span class="font-mono text-sm text-root-600">[{{ $i + 1 }}]</span>
                                 <span>
-                                    <a href="{{ route('publications.show', $idea) }}" class="font-medium text-root-800 hover:underline">{{ $idea->title }}</a>
+                                    <a href="{{ route('publications.show', $publication) }}" class="font-medium text-root-800 hover:underline">{{ $publication->title }}</a>
                                     <span class="text-sm text-root-600">
-                                        — {{ $idea->typeLabel() }}@if ($idea->user), {{ $idea->user->name }}@endif
+                                        — {{ $publication->typeLabel() }}@if ($publication->authors->isNotEmpty()), {{ $publication->authors->pluck('name')->join(', ') }}@endif
                                     </span>
                                 </span>
                             </li>
