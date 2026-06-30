@@ -68,7 +68,11 @@
                         ],
                         layout: { name: 'cose', animate: false, padding: 30, nodeRepulsion: 8000 },
                         wheelSensitivity: 0.2,
+                        minZoom: 0.2,
+                        maxZoom: 1.5,
                     });
+
+                    cy.ready(function () { cy.fit(undefined, 60); });
 
                     cy.on('tap', 'node', function (evt) {
                         var url = evt.target.data('url');
