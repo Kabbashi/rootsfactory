@@ -36,12 +36,33 @@ class IdeaForm
                     ->rows(5)
                     ->columnSpanFull(),
                 FileUpload::make('image_path')
-                    ->label('Image')
+                    ->label('Image (for AI)')
                     ->image()
                     ->disk('public')
                     ->directory('idea-images')
                     ->imagePreviewHeight('120')
-                    ->helperText('Optional. Save the idea, then use "Suggest core statement from image" to let AI read it.')
+                    ->helperText('Optional. A sketch/photo the AI can read — save the idea, then use "Suggest core statement from image".')
+                    ->columnSpanFull(),
+                FileUpload::make('attachments')
+                    ->label('Attachments')
+                    ->multiple()
+                    ->disk('public')
+                    ->directory('idea-files')
+                    ->acceptedFileTypes([
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'application/vnd.ms-excel',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        'text/plain',
+                        'image/png',
+                        'image/jpeg',
+                    ])
+                    ->maxSize(20480)
+                    ->downloadable()
+                    ->openable()
+                    ->reorderable()
+                    ->helperText('Documents to support the idea — PDF, Word, Excel, text or images (max 20 MB each).')
                     ->columnSpanFull(),
                 Radio::make('visibility')
                     ->options(Idea::VISIBILITIES)

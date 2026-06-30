@@ -27,7 +27,11 @@ class Idea extends Model
         'public' => 'Public — the whole network',
     ];
 
-    protected $fillable = ['user_id', 'name', 'core_statement', 'description', 'image_path', 'visibility'];
+    protected $fillable = ['user_id', 'name', 'core_statement', 'description', 'image_path', 'attachments', 'visibility'];
+
+    protected $casts = [
+        'attachments' => 'array',
+    ];
 
     public function user(): BelongsTo
     {
@@ -78,6 +82,7 @@ class Idea extends Model
             $idea->comments()->delete();
             $idea->reactions()->delete();
             $idea->collaborationOffers()->delete();
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($idea->attachments ?? []);
         });
     }
 }
