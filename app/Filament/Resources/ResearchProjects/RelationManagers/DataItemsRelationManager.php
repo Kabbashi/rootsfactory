@@ -27,7 +27,7 @@ class DataItemsRelationManager extends RelationManager
         return $schema->components([
             TextInput::make('title')->required()->maxLength(200)->columnSpanFull(),
             Select::make('kind')->options(DataItem::KINDS)->default('transcript')->required(),
-            DatePicker::make('collected_at')->label('Collected')->native(false),
+            DatePicker::make('collected_at')->label('Collection date')->native(false),
             Textarea::make('content')->rows(10)->columnSpanFull(),
         ]);
     }
@@ -40,7 +40,7 @@ class DataItemsRelationManager extends RelationManager
                 TextColumn::make('title')->weight('medium')->wrap()->searchable(),
                 TextColumn::make('kind')->badge()->color('info')
                     ->formatStateUsing(fn (?string $state): string => DataItem::KINDS[$state] ?? '—'),
-                TextColumn::make('collected_at')->date()->placeholder('—')->sortable(),
+                TextColumn::make('collected_at')->label('Collection date')->date()->placeholder('—')->sortable(),
             ])
             ->filters([
                 SelectFilter::make('kind')->options(DataItem::KINDS),

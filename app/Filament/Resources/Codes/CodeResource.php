@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Codes;
 
 use App\Filament\Resources\Codes\Pages\ManageCodes;
+use App\Models\Category;
 use App\Models\Code;
 use BackedEnum;
 use Filament\Actions\EditAction;
@@ -34,7 +35,13 @@ class CodeResource extends Resource
     {
         return $schema->components([
             TextInput::make('name')->required()->maxLength(150),
-            Select::make('category_id')->label('Category')->relationship('category', 'name')->searchable()->preload(),
+            Select::make('category_id')
+                ->label('Category')
+                ->relationship('category', 'name')
+                ->getOptionLabelFromRecordUsing(fn (Category $record): string => $record->qualifiedName())
+                ->searchable()
+                ->preload()
+                ->helperText('From the shared category taxonomy — the same tree used across ideas, concepts and projects.'),
             ColorPicker::make('color'),
             Textarea::make('description')->rows(3)->columnSpanFull(),
         ]);
@@ -46,8 +53,11 @@ class CodeResource extends Resource
             ->columns([
                 ColorColumn::make('color')->toggleable(),
                 TextColumn::make('name')->weight('medium')->searchable(),
-                TextColumn::make('category.name')->label('Category')->badge()->placeholder('—'),
-                TextColumn::make('category.theme.name')->label('Theme')->badge()->color('gray')->placeholder('—')->toggleable(),
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->badge()
+                    ->state(fn (Code $record): ?string => $record->category?->qualifiedName())
+                    ->placeholder('—'),
                 TextColumn::make('data_items_count')->label('Coded')->counts('dataItems')->badge()->color('gray'),
             ])
             ->filters([

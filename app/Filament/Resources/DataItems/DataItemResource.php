@@ -40,7 +40,7 @@ class DataItemResource extends Resource
             Select::make('kind')->options(DataItem::KINDS)->default('transcript')->required(),
             Select::make('research_project_id')->label('Project')->relationship('project', 'title')->searchable()->preload(),
             TextInput::make('language')->default('en')->maxLength(8),
-            DatePicker::make('collected_at')->label('Collected')->native(false),
+            DatePicker::make('collected_at')->label('Collection date')->native(false),
             Select::make('codes')->relationship('codes', 'name')->multiple()->searchable()->preload()
                 ->helperText('Apply qualitative codes to this item.')->columnSpanFull(),
             Textarea::make('content')->rows(14)->columnSpanFull(),
@@ -57,7 +57,7 @@ class DataItemResource extends Resource
                     ->formatStateUsing(fn (?string $state): string => DataItem::KINDS[$state] ?? '—'),
                 TextColumn::make('project.title')->label('Project')->placeholder('—')->limit(30)->toggleable(),
                 TextColumn::make('codes_count')->label('Codes')->counts('codes')->badge()->color('gray'),
-                TextColumn::make('collected_at')->date()->placeholder('—')->sortable(),
+                TextColumn::make('collected_at')->label('Collection date')->date()->placeholder('—')->sortable(),
             ])
             ->filters([
                 SelectFilter::make('kind')->options(DataItem::KINDS),
