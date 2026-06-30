@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Ideas\Pages;
 
 use App\Filament\Resources\Ideas\IdeaResource;
+use App\Models\Keyword;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateIdea extends CreateRecord
@@ -15,5 +16,10 @@ class CreateIdea extends CreateRecord
         $data['user_id'] = auth()->id();
 
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        Keyword::syncNames($this->record, $this->data['keyword_names'] ?? []);
     }
 }

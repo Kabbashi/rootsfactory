@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Ideas\Pages;
 use App\Filament\Resources\Ideas\IdeaResource;
 use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
 use App\Models\Idea;
+use App\Models\Keyword;
 use App\Models\ResearchConcept;
 use App\Services\CoThinker;
 use Filament\Actions\Action;
@@ -18,6 +19,19 @@ use Illuminate\Support\Facades\Storage;
 class EditIdea extends EditRecord
 {
     protected static string $resource = IdeaResource::class;
+
+    /** Hydrate the keyword tags from the relation. */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['keyword_names'] = $this->record->keywords->pluck('name')->all();
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        Keyword::syncNames($this->record, $this->data['keyword_names'] ?? []);
+    }
 
     protected function getHeaderActions(): array
     {

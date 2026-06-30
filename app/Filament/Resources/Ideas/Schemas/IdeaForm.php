@@ -4,9 +4,11 @@ namespace App\Filament\Resources\Ideas\Schemas;
 
 use App\Models\Category;
 use App\Models\Idea;
+use App\Models\Keyword;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -52,16 +54,12 @@ class IdeaForm
                     ->multiple()
                     ->searchable()
                     ->preload(),
-                Select::make('keywords')
+                TagsInput::make('keyword_names')
                     ->label('Keywords')
-                    ->relationship('keywords', 'name')
-                    ->multiple()
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm([
-                        TextInput::make('name')->required()->unique('keywords', 'name'),
-                    ])
-                    ->helperText('Pick from existing keywords or add new ones.')
+                    ->splitKeys([';'])
+                    ->suggestions(Keyword::orderBy('name')->pluck('name')->all())
+                    ->dehydrated(false)
+                    ->helperText('Separate keywords with a semicolon; pick from the suggestions or add new ones.')
                     ->columnSpanFull(),
                 Select::make('crossReferences')
                     ->label('Related ideas')
