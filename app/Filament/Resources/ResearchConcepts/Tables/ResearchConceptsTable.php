@@ -47,14 +47,9 @@ class ResearchConceptsTable
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'draft' => 'Draft',
-                        'in_discussion' => 'In discussion',
-                        'published' => 'Published',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (string $state): string => \App\Models\ResearchConcept::STATUS_LABELS[$state] ?? $state)
                     ->color(fn (string $state): string => match ($state) {
-                        'published' => 'success',
+                        'final' => 'success',
                         'in_discussion' => 'warning',
                         default => 'gray',
                     }),
@@ -72,11 +67,7 @@ class ResearchConceptsTable
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'in_discussion' => 'In discussion',
-                        'published' => 'Published',
-                    ]),
+                    ->options(\App\Models\ResearchConcept::STATUS_LABELS),
                 SelectFilter::make('type')
                     ->options(\App\Models\ResearchConcept::TYPES),
                 SelectFilter::make('topic')

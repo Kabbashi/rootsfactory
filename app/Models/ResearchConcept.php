@@ -17,7 +17,13 @@ class ResearchConcept extends Model
     use HasCategories;
     use HasKeywords;
 
-    public const STATUSES = ['draft', 'in_discussion', 'published'];
+    public const STATUSES = ['draft', 'in_discussion', 'final'];
+
+    public const STATUS_LABELS = [
+        'draft' => 'Draft',
+        'in_discussion' => 'In discussion',
+        'final' => 'Final',
+    ];
 
     /** Publication types, mapped to their human label (also the badge text). */
     public const TYPES = [
@@ -45,22 +51,38 @@ class ResearchConcept extends Model
         return 'slug';
     }
 
-    /** Only ideas the team has chosen to publish are visible to the public. */
-    public function scopePublished(Builder $query): Builder
+    /** Concepts the team has marked final (the finished ones). */
+    public function scopeFinal(Builder $query): Builder
     {
-        return $query->where('status', 'published');
+        return $query->where('status', 'final');
+    }
+
+    public function isFinal(): bool
+    {
+        return $this->status === 'final';
+    }
+
+    /** A final concept is locked for everyone except the person who brought it in. */
+    public function isLockedFor(?int $userId): bool
+    {
+        return $this->isFinal() && $this->user_id !== $userId;
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status;
     }
 
     protected static function booted(): void
     {
-        // Keep slug and publish date in step with the status — covers both
+        // Keep slug and finalised date in step with the status — covers both
         // Filament edits and programmatic changes.
         static::saving(function (ResearchConcept $idea): void {
             if (blank($idea->slug)) {
                 $idea->slug = static::uniqueSlug($idea->title);
             }
 
-            if ($idea->status === 'published' && blank($idea->published_at)) {
+            if ($idea->status === 'final' && blank($idea->published_at)) {
                 $idea->published_at = now();
             }
         });

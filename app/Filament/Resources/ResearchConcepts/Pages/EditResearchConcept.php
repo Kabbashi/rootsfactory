@@ -15,8 +15,38 @@ class EditResearchConcept extends EditRecord
 {
     protected static string $resource = ResearchConceptResource::class;
 
+    private function isLocked(): bool
+    {
+        return $this->record->isLockedFor(auth()->id());
+    }
+
+    public function getSubheading(): ?string
+    {
+        return $this->isLocked()
+            ? '🔒 This concept is Final. Only the person who brought it in can change it.'
+            : null;
+    }
+
+    /** No save/cancel buttons when the concept is locked. */
+    protected function getFormActions(): array
+    {
+        return $this->isLocked() ? [] : parent::getFormActions();
+    }
+
+    /** Server-side guard against a locked save slipping through. */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        abort_if($this->isLocked(), 403, 'This concept is final and locked.');
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
+        if ($this->isLocked()) {
+            return [];
+        }
+
         return [
             ActionGroup::make([
                 Action::make('ai_summarize')

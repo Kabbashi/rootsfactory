@@ -44,19 +44,18 @@ class ResearchConceptForm
                     ->required(),
                 Select::make('status')
                     ->label('Status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'in_discussion' => 'In discussion',
-                        'published' => 'Published',
-                    ])
+                    ->options(ResearchConcept::STATUS_LABELS)
                     ->default('draft')
-                    ->required(),
+                    ->required()
+                    ->helperText('Once Final, the concept is locked — only the person who brought it in can change it.'),
                 Toggle::make('pinned')
                     ->label('Pinned')
                     ->helperText('Keep at the top of the feed'),
                 MarkdownEditor::make('body')
                     ->label('Content')
                     ->columnSpanFull(),
-            ]);
+            ])
+            // A final concept is read-only for everyone but its originator.
+            ->disabled(fn (?ResearchConcept $record): bool => (bool) $record?->isLockedFor(auth()->id()));
     }
 }
