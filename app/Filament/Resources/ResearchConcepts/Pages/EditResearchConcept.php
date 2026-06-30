@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ResearchConcepts\Pages;
 
 use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
 use App\Jobs\GenerateAiInsight;
+use App\Models\Keyword;
 use App\Services\CoThinker;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -18,6 +19,18 @@ class EditResearchConcept extends EditRecord
     private function isLocked(): bool
     {
         return $this->record->isLockedFor(auth()->id());
+    }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['keyword_names'] = $this->record->keywords->pluck('name')->all();
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        Keyword::syncNames($this->record, $this->data['keyword_names'] ?? []);
     }
 
     public function getSubheading(): ?string

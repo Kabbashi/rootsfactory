@@ -56,6 +56,17 @@ class ResearchConceptsTable
                 TextColumn::make('user.name')
                     ->label('By')
                     ->toggleable(),
+                TextColumn::make('categories.name')
+                    ->label('Categories')
+                    ->badge()
+                    ->separator(',')
+                    ->toggleable(),
+                TextColumn::make('keywords.name')
+                    ->label('Keywords')
+                    ->badge()
+                    ->color('gray')
+                    ->separator(',')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('comments_count')
                     ->label('💬')
                     ->counts('comments')

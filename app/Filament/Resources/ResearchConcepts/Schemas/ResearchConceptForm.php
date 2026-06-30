@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\ResearchConcepts\Schemas;
 
+use App\Models\Category;
+use App\Models\Keyword;
 use App\Models\ResearchConcept;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -51,6 +54,19 @@ class ResearchConceptForm
                 Toggle::make('pinned')
                     ->label('Pinned')
                     ->helperText('Keep at the top of the feed'),
+                Select::make('categories')
+                    ->label('Categories')
+                    ->relationship('categories', 'name')
+                    ->getOptionLabelFromRecordUsing(fn (Category $record): string => $record->qualifiedName())
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
+                TagsInput::make('keyword_names')
+                    ->label('Keywords')
+                    ->splitKeys([';'])
+                    ->suggestions(Keyword::orderBy('name')->pluck('name')->all())
+                    ->dehydrated(false)
+                    ->helperText('Separate keywords with a semicolon.'),
                 MarkdownEditor::make('body')
                     ->label('Content')
                     ->columnSpanFull(),
