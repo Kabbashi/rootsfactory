@@ -1,8 +1,41 @@
 <x-filament-panels::page>
     <p class="text-sm text-gray-500 dark:text-gray-400">
-        The path from draft to published. Open a manuscript to move it to the next stage,
-        assign reviewers, and snapshot versions.
+        The shared workflow: concepts and projects you and others move forward together,
+        plus the path from draft to published.
     </p>
+
+    {{-- My work --}}
+    @php($mine = $this->getMyWork())
+    <div class="grid gap-4 sm:grid-cols-2">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <h3 class="text-sm font-semibold">My concepts</h3>
+            <ul class="mt-2 space-y-1">
+                @forelse ($mine['concepts'] as $concept)
+                    <li class="text-sm">
+                        <a href="{{ \App\Filament\Resources\ResearchConcepts\ResearchConceptResource::getUrl('edit', ['record' => $concept]) }}"
+                           class="text-primary-600 hover:underline">{{ \Illuminate\Support\Str::limit($concept->title, 60) }}</a>
+                        <span class="text-xs text-gray-500">· {{ \App\Models\ResearchConcept::STATUS_LABELS[$concept->status] ?? $concept->status }}</span>
+                    </li>
+                @empty
+                    <li class="text-sm text-gray-400">Nothing yet — start one in the Research Hub.</li>
+                @endforelse
+            </ul>
+        </div>
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <h3 class="text-sm font-semibold">My projects</h3>
+            <ul class="mt-2 space-y-1">
+                @forelse ($mine['projects'] as $project)
+                    <li class="text-sm">
+                        <a href="{{ \App\Filament\Resources\ResearchProjects\ResearchProjectResource::getUrl('edit', ['record' => $project]) }}"
+                           class="text-primary-600 hover:underline">{{ \Illuminate\Support\Str::limit($project->title, 60) }}</a>
+                        <span class="text-xs text-gray-500">· {{ \App\Models\ResearchProject::STATUSES[$project->status] ?? $project->status }}</span>
+                    </li>
+                @empty
+                    <li class="text-sm text-gray-400">You don’t lead or belong to a project yet.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
 
     {{-- Research Concepts by stage --}}
     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Research Concepts</h2>
@@ -20,6 +53,32 @@
                                class="block rounded-lg bg-gray-50 dark:bg-gray-800 px-2 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <span class="font-medium">{{ \Illuminate\Support\Str::limit($concept->title, 50) }}</span>
                                 <span class="block text-xs text-gray-500">{{ $concept->user?->name }}</span>
+                            </a>
+                        </li>
+                    @empty
+                        <li class="text-xs text-gray-400">—</li>
+                    @endforelse
+                </ul>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- Research Projects by status --}}
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Research Projects</h2>
+    <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        @foreach ($this->getProjectPipeline() as $status => $projects)
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {{ \App\Models\ResearchProject::STATUSES[$status] ?? $status }}
+                    <span class="ml-1 text-gray-400">({{ $projects->count() }})</span>
+                </h3>
+                <ul class="mt-2 space-y-2">
+                    @forelse ($projects as $project)
+                        <li>
+                            <a href="{{ \App\Filament\Resources\ResearchProjects\ResearchProjectResource::getUrl('edit', ['record' => $project]) }}"
+                               class="block rounded-lg bg-gray-50 dark:bg-gray-800 px-2 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <span class="font-medium">{{ \Illuminate\Support\Str::limit($project->title, 50) }}</span>
+                                <span class="block text-xs text-gray-500">{{ $project->lead?->name }}</span>
                             </a>
                         </li>
                     @empty

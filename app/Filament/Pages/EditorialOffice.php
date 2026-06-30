@@ -4,10 +4,12 @@ namespace App\Filament\Pages;
 
 use App\Models\Publication;
 use App\Models\ResearchConcept;
+use App\Models\ResearchProject;
 use App\Models\Review;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Editorial Office — the publication workflow at a glance. Editors see the
@@ -67,6 +69,50 @@ class EditorialOffice extends Page
             ->all();
     }
 
+    /**
+     * Research projects grouped by their status.
+     *
+     * @return array<string, \Illuminate\Support\Collection<int, ResearchProject>>
+     */
+    public function getProjectPipeline(): array
+    {
+        $byStatus = ResearchProject::query()
+            ->with('lead')
+            ->latest('updated_at')
+            ->get()
+            ->groupBy('status');
+
+        return collect(ResearchProject::STATUSES)
+            ->keys()
+            ->mapWithKeys(fn (string $status): array => [$status => $byStatus->get($status, collect())])
+            ->all();
+    }
+
+    /**
+     * What the current user is collaborating on: concepts they authored or
+     * offered to help with, and projects they lead or are a member of.
+     *
+     * @return array{concepts: \Illuminate\Support\Collection, projects: \Illuminate\Support\Collection}
+     */
+    public function getMyWork(): array
+    {
+        $me = auth()->id();
+
+        $concepts = ResearchConcept::query()
+            ->where('user_id', $me)
+            ->orWhereHas('collaborationOffers', fn (Builder $q) => $q->where('user_id', $me))
+            ->latest('updated_at')
+            ->get();
+
+        $projects = ResearchProject::query()
+            ->where('lead_user_id', $me)
+            ->orWhereHas('members', fn (Builder $q) => $q->where('users.id', $me))
+            ->latest('updated_at')
+            ->get();
+
+        return ['concepts' => $concepts, 'projects' => $projects];
+    }
+
     /** Reviews assigned to the current user that still need attention. */
     public function getMyReviews()
     {
@@ -76,10 +122,5 @@ class EditorialOffice extends Page
             ->with('publication')
             ->orderBy('due_at')
             ->get();
-    }
-
-    public function getRecentlyPublished()
-    {
-        return Publication::query()->where('status', 'published')->latest('published_at')->limit(5)->get();
     }
 }
