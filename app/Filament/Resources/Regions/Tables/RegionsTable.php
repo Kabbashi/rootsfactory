@@ -19,9 +19,9 @@ class RegionsTable
                     ->label('Name')
                     ->searchable()
                     ->weight('medium'),
-                TextColumn::make('ideas_count')
-                    ->label('Ideas')
-                    ->counts('ideas')
+                TextColumn::make('research_concepts_count')
+                    ->label('Research concepts')
+                    ->counts('researchConcepts')
                     ->alignCenter()
                     ->badge(),
                 TextColumn::make('description')

@@ -91,9 +91,9 @@ class User extends Authenticatable implements FilamentUser
         return $this->isEditor();
     }
 
-    public function ideas(): HasMany
+    public function researchConcepts(): HasMany
     {
-        return $this->hasMany(Idea::class);
+        return $this->hasMany(ResearchConcept::class);
     }
 
     /** Research projects this member belongs to. */

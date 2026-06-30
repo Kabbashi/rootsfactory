@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attachment extends Model
 {
-    protected $fillable = ['idea_id', 'title', 'path', 'kind'];
+    protected $fillable = ['research_concept_id', 'title', 'path', 'kind'];
 
-    public function idea(): BelongsTo
+    public function researchConcept(): BelongsTo
     {
-        return $this->belongsTo(Idea::class);
+        return $this->belongsTo(ResearchConcept::class);
     }
 }

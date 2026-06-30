@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Idea;
+use App\Models\ResearchConcept;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -26,7 +26,7 @@ class CoThinker
     /**
      * One-line brief of the idea and its discussion.
      */
-    public function summarize(Idea $idea): string
+    public function summarize(ResearchConcept $idea): string
     {
         return $this->chat([
             ['role' => 'system', 'content' => self::SYSTEM],
@@ -42,7 +42,7 @@ class CoThinker
      * Expand a short idea into a fuller, structured brief — without inventing
      * any facts, figures, places or citations. Returns Markdown for the body.
      */
-    public function expand(Idea $idea): string
+    public function expand(ResearchConcept $idea): string
     {
         return $this->chat([
             ['role' => 'system', 'content' => self::SYSTEM],
@@ -61,7 +61,7 @@ class CoThinker
     /**
      * Constructive red team: challenges, risks, blind spots.
      */
-    public function redTeam(Idea $idea): string
+    public function redTeam(ResearchConcept $idea): string
     {
         return $this->chat([
             ['role' => 'system', 'content' => self::SYSTEM],
@@ -78,9 +78,9 @@ class CoThinker
     /**
      * Surface related ideas elsewhere in the workspace.
      */
-    public function relatedIdeas(Idea $idea): string
+    public function relatedIdeas(ResearchConcept $idea): string
     {
-        $others = Idea::query()
+        $others = ResearchConcept::query()
             ->where('id', '!=', $idea->id)
             ->with('topic')
             ->latest()
@@ -92,7 +92,7 @@ class CoThinker
         }
 
         $list = $others
-            ->map(fn (Idea $o): string => "#{$o->id} [{$o->topic?->name}] {$o->title}")
+            ->map(fn (ResearchConcept $o): string => "#{$o->id} [{$o->topic?->name}] {$o->title}")
             ->implode("\n");
 
         return $this->chat([
@@ -148,7 +148,7 @@ class CoThinker
     {
         $others = Topic::query()
             ->where('id', '!=', $topic->id)
-            ->withCount('ideas')
+            ->withCount('researchConcepts')
             ->get();
 
         if ($others->isEmpty()) {
@@ -156,7 +156,7 @@ class CoThinker
         }
 
         $list = $others
-            ->map(fn (Topic $o): string => "#{$o->id} ({$o->ideas_count} ideas) {$o->name}"
+            ->map(fn (Topic $o): string => "#{$o->id} ({$o->research_concepts_count} ideas) {$o->name}"
                 . ($o->description ? ' — ' . (string) str($o->description)->limit(80) : ''))
             ->implode("\n");
 
@@ -177,7 +177,7 @@ class CoThinker
      * Answer a public question grounded ONLY in the given published sources,
      * citing them inline as [1], [2]… No outside knowledge, no invented facts.
      *
-     * @param  \Illuminate\Support\Collection<int, \App\Models\Idea>  $sources
+     * @param  \Illuminate\Support\Collection<int, \App\Models\ResearchConcept>  $sources
      */
     public function answerQuestion(string $question, $sources): string
     {
@@ -270,7 +270,7 @@ class CoThinker
      * Render an idea + its human discussion as plain text for the prompt.
      * AI-authored comments are excluded so the model never feeds on itself.
      */
-    private function ideaContext(Idea $idea, bool $withDiscussion = true): string
+    private function ideaContext(ResearchConcept $idea, bool $withDiscussion = true): string
     {
         $idea->loadMissing(['topic', 'comments.user']);
 
@@ -304,7 +304,7 @@ class CoThinker
     private function topicContext(Topic $topic): string
     {
         $topic->loadMissing([
-            'ideas' => fn ($q) => $q->latest()->limit(40),
+            'researchConcepts' => fn ($q) => $q->latest()->limit(40),
             'comments.user',
         ]);
 
@@ -314,8 +314,8 @@ class CoThinker
             $parts[] = "Description: {$topic->description}";
         }
 
-        $ideas = $topic->ideas
-            ->map(fn (Idea $i): string => "- [{$i->status}] {$i->title}: " . (string) str($i->body)->limit(160))
+        $ideas = $topic->researchConcepts
+            ->map(fn (ResearchConcept $i): string => "- [{$i->status}] {$i->title}: " . (string) str($i->body)->limit(160))
             ->implode("\n");
 
         $parts[] = "\nIdeas under this topic:\n" . ($ideas !== '' ? $ideas : '(no ideas yet)');

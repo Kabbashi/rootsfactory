@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Ideas\Tables;
+namespace App\Filament\Resources\ResearchConcepts\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -10,7 +10,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-class IdeasTable
+class ResearchConceptsTable
 {
     public static function configure(Table $table): Table
     {
@@ -33,7 +33,7 @@ class IdeasTable
                     ->label('Type')
                     ->badge()
                     ->color('info')
-                    ->formatStateUsing(fn (?string $state): string => \App\Models\Idea::TYPES[$state] ?? '—'),
+                    ->formatStateUsing(fn (?string $state): string => \App\Models\ResearchConcept::TYPES[$state] ?? '—'),
                 TextColumn::make('topic.name')
                     ->label('Topic')
                     ->badge()
@@ -78,7 +78,7 @@ class IdeasTable
                         'published' => 'Published',
                     ]),
                 SelectFilter::make('type')
-                    ->options(\App\Models\Idea::TYPES),
+                    ->options(\App\Models\ResearchConcept::TYPES),
                 SelectFilter::make('topic')
                     ->relationship('topic', 'name'),
                 SelectFilter::make('region')

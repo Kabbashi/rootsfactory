@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Idea;
+use App\Models\ResearchConcept;
 use App\Services\CoThinker;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -62,7 +62,7 @@ class AgentCenter extends Page
             return;
         }
 
-        $idea = Idea::create([
+        $idea = ResearchConcept::create([
             'user_id' => auth()->id(),
             'title' => str(trim($this->prompt))->limit(120)->value() ?: 'Untitled draft',
             'body' => $this->answer,
@@ -78,6 +78,6 @@ class AgentCenter extends Page
 
         $this->reset(['prompt', 'answer']);
 
-        $this->redirect(\App\Filament\Resources\Ideas\IdeaResource::getUrl('edit', ['record' => $idea]));
+        $this->redirect(\App\Filament\Resources\ResearchConcepts\ResearchConceptResource::getUrl('edit', ['record' => $idea]));
     }
 }

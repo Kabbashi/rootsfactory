@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\Ideas\Schemas;
+namespace App\Filament\Resources\ResearchConcepts\Schemas;
 
-use App\Models\Idea;
+use App\Models\ResearchConcept;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-class IdeaForm
+class ResearchConceptForm
 {
     public static function configure(Schema $schema): Schema
     {
@@ -39,7 +39,7 @@ class IdeaForm
                     ]),
                 Select::make('type')
                     ->label('Type')
-                    ->options(Idea::TYPES)
+                    ->options(ResearchConcept::TYPES)
                     ->default('brief')
                     ->required(),
                 Select::make('status')

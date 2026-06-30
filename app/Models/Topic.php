@@ -23,9 +23,9 @@ class Topic extends Model
         static::deleting(fn (Topic $topic) => $topic->comments()->delete());
     }
 
-    public function ideas(): HasMany
+    public function researchConcepts(): HasMany
     {
-        return $this->hasMany(Idea::class);
+        return $this->hasMany(ResearchConcept::class);
     }
 
     public function comments(): MorphMany

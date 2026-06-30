@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
-class Idea extends Model
+class ResearchConcept extends Model
 {
     public const STATUSES = ['draft', 'in_discussion', 'published'];
 
@@ -45,7 +45,7 @@ class Idea extends Model
     {
         // Keep slug and publish date in step with the status — covers both
         // Filament edits and programmatic changes.
-        static::saving(function (Idea $idea): void {
+        static::saving(function (ResearchConcept $idea): void {
             if (blank($idea->slug)) {
                 $idea->slug = static::uniqueSlug($idea->title);
             }
@@ -56,11 +56,11 @@ class Idea extends Model
         });
 
         // Polymorphic comments have no DB-level cascade — clean them up here.
-        static::deleting(fn (Idea $idea) => $idea->comments()->delete());
+        static::deleting(fn (ResearchConcept $idea) => $idea->comments()->delete());
 
         // When an idea opens for discussion, let the co-thinker kick it off
         // with a summary (opt-out via config('ai.auto_summary')).
-        static::updated(function (Idea $idea): void {
+        static::updated(function (ResearchConcept $idea): void {
             if (config('ai.auto_summary')
                 && filled(config('ai.key'))
                 && $idea->wasChanged('status')

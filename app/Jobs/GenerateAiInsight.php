@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Idea;
+use App\Models\ResearchConcept;
 use App\Models\Topic;
 use App\Models\User;
 use App\Services\CoThinker;
@@ -38,7 +38,7 @@ class GenerateAiInsight implements ShouldQueue
     public static function for(Model $subject, string $mode): void
     {
         $type = match (true) {
-            $subject instanceof Idea => 'idea',
+            $subject instanceof ResearchConcept => 'idea',
             $subject instanceof Topic => 'topic',
             default => throw new \InvalidArgumentException('Unsupported co-thinker subject: ' . $subject::class),
         };
@@ -49,7 +49,7 @@ class GenerateAiInsight implements ShouldQueue
     public function handle(CoThinker $ai): void
     {
         $subject = match ($this->subjectType) {
-            'idea' => Idea::find($this->subjectId),
+            'idea' => ResearchConcept::find($this->subjectId),
             'topic' => Topic::find($this->subjectId),
             default => null,
         };
@@ -69,9 +69,9 @@ class GenerateAiInsight implements ShouldQueue
     /**
      * @return array{0: string, 1: string}  [heading, body]
      */
-    private function generate(CoThinker $ai, Idea|Topic $subject): array
+    private function generate(CoThinker $ai, ResearchConcept|Topic $subject): array
     {
-        if ($subject instanceof Idea) {
+        if ($subject instanceof ResearchConcept) {
             return match ($this->mode) {
                 'summarize' => ['🤖 Summary', $ai->summarize($subject)],
                 'red_team' => ['🤖 Red-team — challenges & blind spots', $ai->redTeam($subject)],

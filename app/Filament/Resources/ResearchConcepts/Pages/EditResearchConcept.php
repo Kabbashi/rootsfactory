@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\Ideas\Pages;
+namespace App\Filament\Resources\ResearchConcepts\Pages;
 
-use App\Filament\Resources\Ideas\IdeaResource;
+use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
 use App\Jobs\GenerateAiInsight;
 use App\Services\CoThinker;
 use Filament\Actions\Action;
@@ -11,9 +11,9 @@ use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
-class EditIdea extends EditRecord
+class EditResearchConcept extends EditRecord
 {
-    protected static string $resource = IdeaResource::class;
+    protected static string $resource = ResearchConceptResource::class;
 
     protected function getHeaderActions(): array
     {

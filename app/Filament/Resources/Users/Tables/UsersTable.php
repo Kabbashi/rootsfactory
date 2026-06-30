@@ -24,9 +24,9 @@ class UsersTable
                 TextColumn::make('role')
                     ->label('Role')
                     ->badge(),
-                TextColumn::make('ideas_count')
-                    ->label('Ideas')
-                    ->counts('ideas')
+                TextColumn::make('research_concepts_count')
+                    ->label('Research concepts')
+                    ->counts('researchConcepts')
                     ->alignCenter()
                     ->badge(),
             ])

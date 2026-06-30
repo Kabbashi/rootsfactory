@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Filament\Resources\Ideas;
+namespace App\Filament\Resources\ResearchConcepts;
 
-use App\Filament\Resources\Ideas\Pages\CreateIdea;
-use App\Filament\Resources\Ideas\Pages\EditIdea;
-use App\Filament\Resources\Ideas\Pages\ListIdeas;
+use App\Filament\Resources\ResearchConcepts\Pages\CreateResearchConcept;
+use App\Filament\Resources\ResearchConcepts\Pages\EditResearchConcept;
+use App\Filament\Resources\ResearchConcepts\Pages\ListResearchConcepts;
 use App\Filament\RelationManagers\CommentsRelationManager;
-use App\Filament\Resources\Ideas\Schemas\IdeaForm;
-use App\Filament\Resources\Ideas\Tables\IdeasTable;
-use App\Models\Idea;
+use App\Filament\Resources\ResearchConcepts\Schemas\ResearchConceptForm;
+use App\Filament\Resources\ResearchConcepts\Tables\ResearchConceptsTable;
+use App\Models\ResearchConcept;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class IdeaResource extends Resource
+class ResearchConceptResource extends Resource
 {
-    protected static ?string $model = Idea::class;
+    protected static ?string $model = ResearchConcept::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLightBulb;
 
@@ -31,12 +31,12 @@ class IdeaResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return IdeaForm::configure($schema);
+        return ResearchConceptForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return IdeasTable::configure($table);
+        return ResearchConceptsTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -49,9 +49,9 @@ class IdeaResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListIdeas::route('/'),
-            'create' => CreateIdea::route('/create'),
-            'edit' => EditIdea::route('/{record}/edit'),
+            'index' => ListResearchConcepts::route('/'),
+            'create' => CreateResearchConcept::route('/create'),
+            'edit' => EditResearchConcept::route('/{record}/edit'),
         ];
     }
 }
