@@ -17,7 +17,7 @@
                 <p class="mt-4 text-root-700">{{ $project->summary }}</p>
             @endif
             <p class="mt-4 text-sm text-root-600">
-                @if ($project->lead) Led by {{ $project->lead->name }} @endif
+                @if ($project->lead && $project->lead->profile_public) Led by {{ $project->lead->name }} @endif
                 @if ($project->start_date) · {{ $project->start_date->format('M Y') }}@if ($project->end_date) – {{ $project->end_date->format('M Y') }} @endif @endif
             </p>
         </header>
@@ -50,12 +50,13 @@
             </div>
         @endif
 
-        @if ($project->members->isNotEmpty())
+        @php($publicTeam = $project->members->where('profile_public', true))
+        @if ($publicTeam->isNotEmpty())
             <div class="mt-8">
                 <h2 class="text-sm font-semibold uppercase tracking-wide text-root-600">Research team</h2>
                 <ul class="mt-2 flex flex-wrap gap-2 text-sm text-root-700">
-                    @foreach ($project->members as $member)
-                        <li><a href="{{ route('people.show', $member) }}" class="hover:underline">{{ $member->name }}</a>@if (! $loop->last),@endif</li>
+                    @foreach ($publicTeam as $member)
+                        <li>@if ($member->isPublicAuthor())<a href="{{ route('people.show', $member) }}" class="hover:underline">{{ $member->name }}</a>@else{{ $member->name }}@endif@if (! $loop->last),@endif</li>
                     @endforeach
                 </ul>
             </div>

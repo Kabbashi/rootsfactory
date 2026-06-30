@@ -16,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 #[Fillable(['name', 'slug', 'title', 'bio', 'email', 'password', 'role', 'sso_subject',
-    'expertise', 'country_experience', 'languages', 'method_competencies'])]
+    'expertise', 'country_experience', 'languages', 'method_competencies', 'profile_public'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -41,6 +41,7 @@ class User extends Authenticatable implements FilamentUser
             'country_experience' => 'array',
             'languages' => 'array',
             'method_competencies' => 'array',
+            'profile_public' => 'boolean',
         ];
     }
 
@@ -127,10 +128,14 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Task::class, 'assignee_id');
     }
 
-    /** Only authors with at least one published publication get a public profile. */
+    /**
+     * A public profile requires explicit consent (profile_public) AND at least
+     * one published publication. Without consent we never expose a member.
+     */
     public function isPublicAuthor(): bool
     {
-        return $this->publications()->where('status', 'published')->exists();
+        return $this->profile_public
+            && $this->publications()->where('status', 'published')->exists();
     }
 
     public function comments(): HasMany

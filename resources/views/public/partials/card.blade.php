@@ -13,8 +13,9 @@
     </p>
 
     <p class="mt-5 text-xs text-root-600">
-        @if ($publication->authors->isNotEmpty())
-            @foreach ($publication->authors as $author)<a href="{{ route('people.show', $author) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $author->name }}</a>@if (! $loop->last), @endif @endforeach
+        @php($shownAuthors = $publication->authors->where('profile_public', true))
+        @if ($shownAuthors->isNotEmpty())
+            @foreach ($shownAuthors as $author)<a href="{{ route('people.show', $author) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $author->name }}</a>@if (! $loop->last), @endif @endforeach
         @else
             Roots Factory
         @endif

@@ -58,8 +58,9 @@
                                 <span class="font-mono text-sm text-root-600">[{{ $i + 1 }}]</span>
                                 <span>
                                     <a href="{{ route('publications.show', $publication) }}" class="font-medium text-root-800 hover:underline">{{ $publication->title }}</a>
+                                    @php($shownAuthors = $publication->authors->where('profile_public', true))
                                     <span class="text-sm text-root-600">
-                                        — {{ $publication->typeLabel() }}@if ($publication->authors->isNotEmpty()), {{ $publication->authors->pluck('name')->join(', ') }}@endif
+                                        — {{ $publication->typeLabel() }}@if ($shownAuthors->isNotEmpty()), {{ $shownAuthors->pluck('name')->join(', ') }}@endif
                                     </span>
                                 </span>
                             </li>

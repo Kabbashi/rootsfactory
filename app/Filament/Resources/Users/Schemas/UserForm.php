@@ -7,6 +7,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -47,6 +48,10 @@ class UserForm
                     TagsInput::make('country_experience')->label('Country experience')->placeholder('Add a country')->columnSpanFull(),
                     TagsInput::make('languages')->placeholder('Add a language'),
                     TagsInput::make('method_competencies')->label('Methodological competencies')->placeholder('Add a method'),
+                    Toggle::make('profile_public')
+                        ->label('Show my profile publicly')
+                        ->helperText('Off by default. When on, your name and profile may appear in the public Community directory and as a byline on your published work.')
+                        ->columnSpanFull(),
                 ])->columns(2)->collapsible(),
             ]);
     }

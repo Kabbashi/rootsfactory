@@ -31,7 +31,7 @@
                         </h2>
                         <p class="mt-3 flex-1 text-sm leading-relaxed text-root-700">{{ Str::limit($project->summary, 160) }}</p>
                         <p class="mt-5 text-xs text-root-600">
-                            @if ($project->lead) Led by {{ $project->lead->name }} · @endif {{ ucfirst($project->status) }}
+                            @if ($project->lead && $project->lead->profile_public) Led by {{ $project->lead->name }} · @endif {{ ucfirst($project->status) }}
                         </p>
                     </article>
                 @endforeach

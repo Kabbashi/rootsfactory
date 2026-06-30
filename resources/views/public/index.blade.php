@@ -30,7 +30,8 @@
                     {{ Str::limit(strip_tags(\Illuminate\Support\Str::markdown($featured->abstract ?? $featured->body ?? '')), 240) }}
                 </p>
                 <p class="mt-6 text-sm text-root-600">
-                    {{ $featured->authors->isNotEmpty() ? $featured->authors->pluck('name')->join(', ') : 'Roots Factory' }}
+                    @php($shownAuthors = $featured->authors->where('profile_public', true))
+                    {{ $shownAuthors->isNotEmpty() ? $shownAuthors->pluck('name')->join(', ') : 'Roots Factory' }}
                     @if ($featured->published_at) · {{ $featured->published_at->format('j M Y') }} @endif
                 </p>
             </a>

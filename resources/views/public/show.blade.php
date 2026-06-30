@@ -12,8 +12,9 @@
             <h1 class="mt-3 font-serif text-4xl font-bold leading-tight text-root-900">{{ $publication->title }}</h1>
             <p class="mt-4 text-sm text-root-600">
                 By
-                @if ($publication->authors->isNotEmpty())
-                    @foreach ($publication->authors as $author)<a href="{{ route('people.show', $author) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $author->name }}</a>@if (! $loop->last), @endif @endforeach
+                @php($shownAuthors = $publication->authors->where('profile_public', true))
+                @if ($shownAuthors->isNotEmpty())
+                    @foreach ($shownAuthors as $author)<a href="{{ route('people.show', $author) }}" class="font-medium text-root-700 hover:text-root-900 hover:underline">{{ $author->name }}</a>@if (! $loop->last), @endif @endforeach
                 @else
                     Roots Factory
                 @endif

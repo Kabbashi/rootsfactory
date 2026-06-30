@@ -16,6 +16,15 @@
     </section>
 
     <div class="mx-auto max-w-5xl px-6 py-12">
+        @if ($members->isEmpty())
+            <div class="rounded-2xl border border-dashed border-root-100 bg-white px-6 py-16 text-center">
+                <p class="font-serif text-xl text-root-800">Member profiles are listed here with consent.</p>
+                <p class="mt-2 max-w-xl mx-auto text-root-700">
+                    We don’t publish anyone’s name or profile without their permission. Members who opt in
+                    will appear here.
+                </p>
+            </div>
+        @else
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($members as $member)
                 <article class="flex items-start gap-4 rounded-2xl border border-root-100 bg-white p-5">
@@ -43,6 +52,7 @@
 
         @if ($members->hasPages())
             <div class="mt-12">{{ $members->links() }}</div>
+        @endif
         @endif
     </div>
 @endsection

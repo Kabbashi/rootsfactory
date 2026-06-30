@@ -18,7 +18,8 @@
         </div>
     </section>
 
-    <div class="mx-auto max-w-3xl px-6 py-12 prose max-w-none">
+    <div class="mx-auto max-w-3xl px-6 py-16">
+        <div class="prose max-w-none">
         <h2>Mission</h2>
         <p>
             To make qualitative evidence and local perspectives visible, and to support researchers across
@@ -54,5 +55,6 @@
             <a href="{{ url('/workspace') }}">workspace</a>, or explore the
             <a href="{{ route('community.index') }}">community</a>.
         </p>
+        </div>
     </div>
 @endsection

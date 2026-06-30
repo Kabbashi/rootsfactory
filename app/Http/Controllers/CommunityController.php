@@ -13,8 +13,11 @@ class CommunityController extends Controller
 {
     public function index(): View
     {
+        // Privacy first: only members who have explicitly opted in to a public
+        // profile are listed. Until then, no names are published.
         $members = User::query()
             ->where('role', '!=', 'system')
+            ->where('profile_public', true)
             ->orderBy('name')
             ->paginate(24);
 
