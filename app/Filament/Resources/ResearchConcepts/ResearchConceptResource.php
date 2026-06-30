@@ -43,6 +43,7 @@ class ResearchConceptResource extends Resource
     {
         return [
             CommentsRelationManager::class,
+            \App\Filament\Resources\Ideas\RelationManagers\CollaborationOffersRelationManager::class,
         ];
     }
 

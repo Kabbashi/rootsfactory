@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasCategories;
 use App\Models\Concerns\HasKeywords;
+use App\Models\Concerns\HasSocialInteractions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,14 +20,12 @@ class Idea extends Model
 {
     use HasCategories;
     use HasKeywords;
+    use HasSocialInteractions;
 
     public const VISIBILITIES = [
         'personal' => 'Personal — only me',
         'public' => 'Public — the whole network',
     ];
-
-    /** Reaction palette for public ideas. */
-    public const EMOJIS = ['👍', '👎', '🙂', '❓'];
 
     protected $fillable = ['user_id', 'name', 'core_statement', 'description', 'image_path', 'visibility'];
 
@@ -38,44 +37,6 @@ class Idea extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
-    }
-
-    public function reactions(): MorphMany
-    {
-        return $this->morphMany(Reaction::class, 'reactable');
-    }
-
-    public function collaborationOffers(): MorphMany
-    {
-        return $this->morphMany(CollaborationOffer::class, 'offerable');
-    }
-
-    public function reactionCount(string $emoji): int
-    {
-        return $this->reactions->where('emoji', $emoji)->count();
-    }
-
-    public function hasReactionFrom(int $userId, string $emoji): bool
-    {
-        return $this->reactions()
-            ->where('user_id', $userId)
-            ->where('emoji', $emoji)
-            ->exists();
-    }
-
-    /** Add or remove the given user's reaction with this emoji. */
-    public function toggleReaction(int $userId, string $emoji): void
-    {
-        $existing = $this->reactions()
-            ->where('user_id', $userId)
-            ->where('emoji', $emoji)
-            ->first();
-
-        if ($existing) {
-            $existing->delete();
-        } else {
-            $this->reactions()->create(['user_id' => $userId, 'emoji' => $emoji]);
-        }
     }
 
     /** Other ideas this one links to (mindmap edges). */

@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Keyword;
 use App\Models\ResearchConcept;
 use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
@@ -67,6 +68,13 @@ class ResearchConceptForm
                     ->suggestions(Keyword::orderBy('name')->pluck('name')->all())
                     ->dehydrated(false)
                     ->helperText('Separate keywords with a semicolon.'),
+                Placeholder::make('contributors')
+                    ->label('Contributors')
+                    ->content(fn (?ResearchConcept $record): string => $record
+                        ? implode(', ', $record->contributorNames())
+                        : '—')
+                    ->visible(fn (?ResearchConcept $record): bool => (bool) $record?->isFromPublicIdea())
+                    ->columnSpanFull(),
                 MarkdownEditor::make('body')
                     ->label('Content')
                     ->columnSpanFull(),

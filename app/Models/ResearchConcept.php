@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Jobs\GenerateAiInsight;
 use App\Models\Concerns\HasCategories;
 use App\Models\Concerns\HasKeywords;
+use App\Models\Concerns\HasSocialInteractions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ class ResearchConcept extends Model
 {
     use HasCategories;
     use HasKeywords;
+    use HasSocialInteractions;
 
     public const STATUSES = ['draft', 'in_discussion', 'final'];
 
@@ -38,6 +40,23 @@ class ResearchConcept extends Model
     public function originIdea(): BelongsTo
     {
         return $this->belongsTo(Idea::class, 'origin_idea_id');
+    }
+
+    /** Concepts grown from a public idea carry the social layer (P7). */
+    public function isFromPublicIdea(): bool
+    {
+        return $this->originIdea && $this->originIdea->isPublic();
+    }
+
+    /** Author plus everyone who offered to collaborate. */
+    public function contributorNames(): array
+    {
+        return collect([$this->user?->name])
+            ->merge($this->collaborationOffers->map(fn ($o) => $o->user?->name))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     protected $casts = [
@@ -87,8 +106,12 @@ class ResearchConcept extends Model
             }
         });
 
-        // Polymorphic comments have no DB-level cascade — clean them up here.
-        static::deleting(fn (ResearchConcept $idea) => $idea->comments()->delete());
+        // Polymorphic relations have no DB-level cascade — clean them up here.
+        static::deleting(function (ResearchConcept $idea): void {
+            $idea->comments()->delete();
+            $idea->reactions()->delete();
+            $idea->collaborationOffers()->delete();
+        });
 
         // When an idea opens for discussion, let the co-thinker kick it off
         // with a summary (opt-out via config('ai.auto_summary')).

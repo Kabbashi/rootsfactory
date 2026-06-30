@@ -9,6 +9,7 @@ use App\Services\CoThinker;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
@@ -56,12 +57,11 @@ class EditResearchConcept extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        if ($this->isLocked()) {
-            return [];
-        }
+        $actions = [];
 
-        return [
-            ActionGroup::make([
+        // Editing tools are hidden when the concept is final/locked.
+        if (! $this->isLocked()) {
+            $actions[] = ActionGroup::make([
                 Action::make('ai_summarize')
                     ->label('Summarize')
                     ->icon('heroicon-m-document-text')
@@ -81,8 +81,68 @@ class EditResearchConcept extends EditRecord
             ])
                 ->label('Ask AI')
                 ->icon('heroicon-m-sparkles')
-                ->button(),
-            DeleteAction::make(),
+                ->button();
+        }
+
+        // Concepts grown from public ideas carry the social layer — allowed
+        // even when final, since reacting/joining is not editing.
+        if ($this->record->isFromPublicIdea()) {
+            $actions = array_merge($actions, $this->reactionActions());
+
+            $actions[] = Action::make('collaborate')
+                ->label('Offer to collaborate')
+                ->icon('heroicon-m-hand-raised')
+                ->color('primary')
+                ->visible(fn (): bool => $this->record->user_id !== auth()->id())
+                ->schema([
+                    Textarea::make('message')->label('Message (optional)')->rows(3),
+                ])
+                ->action(function (array $data): void {
+                    $this->record->collaborationOffers()->updateOrCreate(
+                        ['user_id' => auth()->id()],
+                        ['message' => $data['message'] ?? null],
+                    );
+
+                    Notification::make()
+                        ->title('Your offer to collaborate was sent')
+                        ->success()
+                        ->send();
+                });
+        }
+
+        if (! $this->isLocked()) {
+            $actions[] = DeleteAction::make();
+        }
+
+        return $actions;
+    }
+
+    /**
+     * Emoji reaction toggles for concepts from public ideas.
+     *
+     * @return array<int, \Filament\Actions\ActionGroup>
+     */
+    private function reactionActions(): array
+    {
+        $userId = auth()->id();
+
+        $buttons = [];
+        foreach (\App\Models\ResearchConcept::EMOJIS as $emoji) {
+            $buttons[] = Action::make('react_' . md5($emoji))
+                ->label(fn (): string => $emoji . ' ' . $this->record->reactionCount($emoji))
+                ->color(fn (): string => $this->record->hasReactionFrom($userId, $emoji) ? 'primary' : 'gray')
+                ->action(function () use ($userId, $emoji): void {
+                    $this->record->toggleReaction($userId, $emoji);
+                    $this->record->refresh();
+                });
+        }
+
+        return [
+            ActionGroup::make($buttons)
+                ->label('React')
+                ->icon('heroicon-m-face-smile')
+                ->button()
+                ->color('gray'),
         ];
     }
 
