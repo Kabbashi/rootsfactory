@@ -7,6 +7,7 @@ use App\Models\Concerns\HasKeywords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -34,6 +35,17 @@ class Idea extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    /** Other ideas this one links to (mindmap edges). */
+    public function crossReferences(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            self::class,
+            'idea_cross_references',
+            'idea_id',
+            'related_idea_id',
+        )->withTimestamps();
     }
 
     public function isPublic(): bool

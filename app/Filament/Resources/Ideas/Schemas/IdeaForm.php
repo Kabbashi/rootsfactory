@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class IdeaForm
 {
@@ -52,6 +53,20 @@ class IdeaForm
                         TextInput::make('name')->required()->unique('keywords', 'name'),
                     ])
                     ->helperText('Pick from existing keywords or add new ones.')
+                    ->columnSpanFull(),
+                Select::make('crossReferences')
+                    ->label('Related ideas')
+                    ->relationship(
+                        'crossReferences',
+                        'name',
+                        fn (Builder $query, ?Idea $record) => $query
+                            ->visibleTo(auth()->id())
+                            ->when($record, fn (Builder $q) => $q->whereKeyNot($record->getKey())),
+                    )
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Link to other ideas — these become the connections in the idea map.')
                     ->columnSpanFull(),
             ]);
     }
