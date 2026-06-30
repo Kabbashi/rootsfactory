@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Category extends Model
 {
-    protected $fillable = ['theme_id', 'parent_id', 'name', 'description', 'sort'];
+    protected $fillable = ['parent_id', 'name', 'description', 'sort'];
 
     protected $casts = [
         'sort' => 'integer',
@@ -28,12 +28,6 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort');
-    }
-
-    /** @deprecated kept until the Theme layer is removed (P6). */
-    public function theme(): BelongsTo
-    {
-        return $this->belongsTo(Theme::class);
     }
 
     public function codes(): HasMany
