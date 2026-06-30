@@ -41,6 +41,15 @@ class CodeResource extends Resource
                 ->getOptionLabelFromRecordUsing(fn (Category $record): string => $record->qualifiedName())
                 ->searchable()
                 ->preload()
+                ->createOptionForm([
+                    TextInput::make('name')->required()->maxLength(120),
+                    Select::make('parent_id')
+                        ->label('Parent category')
+                        ->relationship('parent', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->placeholder('— top-level category —'),
+                ])
                 ->helperText('From the shared category taxonomy — the same tree used across ideas, concepts and projects.'),
             ColorPicker::make('color'),
             Textarea::make('description')->rows(3)->columnSpanFull(),

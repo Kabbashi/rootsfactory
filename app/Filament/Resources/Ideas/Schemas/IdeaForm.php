@@ -74,7 +74,16 @@ class IdeaForm
                     ->getOptionLabelFromRecordUsing(fn (Category $record): string => $record->qualifiedName())
                     ->multiple()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->createOptionForm([
+                        TextInput::make('name')->required()->maxLength(120),
+                        Select::make('parent_id')
+                            ->label('Parent category')
+                            ->relationship('parent', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('— top-level category —'),
+                    ]),
                 TagsInput::make('keyword_names')
                     ->label('Keywords')
                     ->splitKeys([';'])
