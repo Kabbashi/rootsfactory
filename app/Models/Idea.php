@@ -25,6 +25,9 @@ class Idea extends Model
         'public' => 'Public — the whole network',
     ];
 
+    /** Reaction palette for public ideas. */
+    public const EMOJIS = ['👍', '👎', '🙂', '❓'];
+
     protected $fillable = ['user_id', 'name', 'core_statement', 'description', 'image_path', 'visibility'];
 
     public function user(): BelongsTo
@@ -35,6 +38,44 @@ class Idea extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function reactions(): MorphMany
+    {
+        return $this->morphMany(Reaction::class, 'reactable');
+    }
+
+    public function collaborationOffers(): MorphMany
+    {
+        return $this->morphMany(CollaborationOffer::class, 'offerable');
+    }
+
+    public function reactionCount(string $emoji): int
+    {
+        return $this->reactions->where('emoji', $emoji)->count();
+    }
+
+    public function hasReactionFrom(int $userId, string $emoji): bool
+    {
+        return $this->reactions()
+            ->where('user_id', $userId)
+            ->where('emoji', $emoji)
+            ->exists();
+    }
+
+    /** Add or remove the given user's reaction with this emoji. */
+    public function toggleReaction(int $userId, string $emoji): void
+    {
+        $existing = $this->reactions()
+            ->where('user_id', $userId)
+            ->where('emoji', $emoji)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+        } else {
+            $this->reactions()->create(['user_id' => $userId, 'emoji' => $emoji]);
+        }
     }
 
     /** Other ideas this one links to (mindmap edges). */
@@ -71,7 +112,11 @@ class Idea extends Model
 
     protected static function booted(): void
     {
-        // Polymorphic comments have no DB-level cascade — clean them up.
-        static::deleting(fn (Idea $idea) => $idea->comments()->delete());
+        // Polymorphic relations have no DB-level cascade — clean them up.
+        static::deleting(function (Idea $idea): void {
+            $idea->comments()->delete();
+            $idea->reactions()->delete();
+            $idea->collaborationOffers()->delete();
+        });
     }
 }

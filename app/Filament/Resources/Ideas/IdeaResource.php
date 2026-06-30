@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Ideas;
 
+use App\Filament\RelationManagers\CommentsRelationManager;
 use App\Filament\Resources\Ideas\Pages\CreateIdea;
 use App\Filament\Resources\Ideas\Pages\EditIdea;
 use App\Filament\Resources\Ideas\Pages\ListIdeas;
+use App\Filament\Resources\Ideas\RelationManagers\CollaborationOffersRelationManager;
 use App\Filament\Resources\Ideas\Schemas\IdeaForm;
 use App\Filament\Resources\Ideas\Tables\IdeasTable;
 use App\Models\Idea;
@@ -45,6 +47,14 @@ class IdeaResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->visibleTo(auth()->id());
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            CommentsRelationManager::class,
+            CollaborationOffersRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

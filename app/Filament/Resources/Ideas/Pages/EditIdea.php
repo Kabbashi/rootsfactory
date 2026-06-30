@@ -6,7 +6,9 @@ use App\Filament\Resources\Ideas\IdeaResource;
 use App\Models\Idea;
 use App\Services\CoThinker;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
@@ -52,7 +54,60 @@ class EditIdea extends EditRecord
                         ->success()
                         ->send();
                 }),
+            ...$this->reactionActions(),
+            Action::make('collaborate')
+                ->label('Offer to collaborate')
+                ->icon('heroicon-m-hand-raised')
+                ->color('primary')
+                ->visible(fn (): bool => $this->record->isPublic() && $this->record->user_id !== auth()->id())
+                ->schema([
+                    Textarea::make('message')->label('Message (optional)')->rows(3),
+                ])
+                ->action(function (array $data): void {
+                    $this->record->collaborationOffers()->updateOrCreate(
+                        ['user_id' => auth()->id()],
+                        ['message' => $data['message'] ?? null],
+                    );
+
+                    Notification::make()
+                        ->title('Your offer to collaborate was sent')
+                        ->success()
+                        ->send();
+                }),
             DeleteAction::make(),
+        ];
+    }
+
+    /**
+     * Emoji reaction toggles, shown only on public ideas.
+     *
+     * @return array<int, \Filament\Actions\ActionGroup>
+     */
+    private function reactionActions(): array
+    {
+        if (! $this->record->isPublic()) {
+            return [];
+        }
+
+        $userId = auth()->id();
+
+        $buttons = [];
+        foreach (Idea::EMOJIS as $emoji) {
+            $buttons[] = Action::make('react_' . md5($emoji))
+                ->label(fn (): string => $emoji . ' ' . $this->record->reactionCount($emoji))
+                ->color(fn (): string => $this->record->hasReactionFrom($userId, $emoji) ? 'primary' : 'gray')
+                ->action(function () use ($userId, $emoji): void {
+                    $this->record->toggleReaction($userId, $emoji);
+                    $this->record->refresh();
+                });
+        }
+
+        return [
+            ActionGroup::make($buttons)
+                ->label('React')
+                ->icon('heroicon-m-face-smile')
+                ->button()
+                ->color('gray'),
         ];
     }
 }
