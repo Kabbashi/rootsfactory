@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Publication;
+use App\Models\ResearchConcept;
 use App\Models\Review;
 use BackedEnum;
 use Filament\Pages\Page;
@@ -45,6 +46,24 @@ class EditorialOffice extends Page
 
         return collect(self::PIPELINE)
             ->mapWithKeys(fn (string $stage): array => [$stage => $byStage->get($stage, collect())])
+            ->all();
+    }
+
+    /**
+     * Research concepts grouped by their stage (draft → in discussion → final).
+     *
+     * @return array<string, \Illuminate\Support\Collection<int, ResearchConcept>>
+     */
+    public function getConceptPipeline(): array
+    {
+        $byStatus = ResearchConcept::query()
+            ->with('user')
+            ->latest('updated_at')
+            ->get()
+            ->groupBy('status');
+
+        return collect(ResearchConcept::STATUSES)
+            ->mapWithKeys(fn (string $status): array => [$status => $byStatus->get($status, collect())])
             ->all();
     }
 

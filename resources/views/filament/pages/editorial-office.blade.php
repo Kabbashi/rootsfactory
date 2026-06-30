@@ -4,7 +4,34 @@
         assign reviewers, and snapshot versions.
     </p>
 
-    {{-- Pipeline by stage --}}
+    {{-- Research Concepts by stage --}}
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Research Concepts</h2>
+    <div class="grid gap-4 sm:grid-cols-3">
+        @foreach ($this->getConceptPipeline() as $status => $concepts)
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {{ \App\Models\ResearchConcept::STATUS_LABELS[$status] ?? $status }}
+                    <span class="ml-1 text-gray-400">({{ $concepts->count() }})</span>
+                </h3>
+                <ul class="mt-2 space-y-2">
+                    @forelse ($concepts as $concept)
+                        <li>
+                            <a href="{{ \App\Filament\Resources\ResearchConcepts\ResearchConceptResource::getUrl('edit', ['record' => $concept]) }}"
+                               class="block rounded-lg bg-gray-50 dark:bg-gray-800 px-2 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <span class="font-medium">{{ \Illuminate\Support\Str::limit($concept->title, 50) }}</span>
+                                <span class="block text-xs text-gray-500">{{ $concept->user?->name }}</span>
+                            </a>
+                        </li>
+                    @empty
+                        <li class="text-xs text-gray-400">—</li>
+                    @endforelse
+                </ul>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- Publications pipeline by stage --}}
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Publications</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         @foreach ($this->getPipeline() as $stage => $publications)
             <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3">
