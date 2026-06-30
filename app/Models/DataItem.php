@@ -49,4 +49,9 @@ class DataItem extends Model
             ->withPivot('excerpt', 'user_id')
             ->withTimestamps();
     }
+
+    public function codings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Coding::class);
+    }
 }

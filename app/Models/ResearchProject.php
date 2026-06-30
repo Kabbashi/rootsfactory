@@ -136,6 +136,12 @@ class ResearchProject extends Model
         return $this->hasMany(DataItem::class);
     }
 
+    /** All coded evidence across the project's data items. */
+    public function codings(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Coding::class, DataItem::class);
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');

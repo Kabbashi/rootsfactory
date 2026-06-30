@@ -67,6 +67,13 @@ class DataItemResource extends Resource
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            \App\Filament\Resources\DataItems\RelationManagers\CodingsRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [

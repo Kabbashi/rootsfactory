@@ -8,6 +8,7 @@ use App\Filament\Resources\ResearchProjects\Pages\EditResearchProject;
 use App\Filament\Resources\ResearchProjects\Pages\ListResearchProjects;
 use App\Filament\Resources\ResearchProjects\RelationManagers\DataItemsRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\ResearchProjects\RelationManagers\EvidenceRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\ReferencesRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\TeamRelationManager;
@@ -99,6 +100,7 @@ class ResearchProjectResource extends Resource
             TasksRelationManager::class,
             DocumentsRelationManager::class,
             DataItemsRelationManager::class,
+            EvidenceRelationManager::class,
             ReferencesRelationManager::class,
             CommentsRelationManager::class,
         ];
