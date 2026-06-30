@@ -15,6 +15,6 @@ trait HasCategories
         return $this->morphToMany(Category::class, 'categorizable')
             ->withPivot('sort')
             ->withTimestamps()
-            ->orderBy('sort');
+            ->orderByPivot('sort');
     }
 }

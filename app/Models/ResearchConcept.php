@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Jobs\GenerateAiInsight;
 use App\Models\Concerns\HasCategories;
+use App\Models\Concerns\HasKeywords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ use Illuminate\Support\Str;
 class ResearchConcept extends Model
 {
     use HasCategories;
+    use HasKeywords;
 
     public const STATUSES = ['draft', 'in_discussion', 'published'];
 
