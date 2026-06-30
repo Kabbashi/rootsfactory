@@ -25,7 +25,7 @@ class Idea extends Model
         'public' => 'Public — the whole network',
     ];
 
-    protected $fillable = ['user_id', 'name', 'core_statement', 'description', 'visibility'];
+    protected $fillable = ['user_id', 'name', 'core_statement', 'description', 'image_path', 'visibility'];
 
     public function user(): BelongsTo
     {

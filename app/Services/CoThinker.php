@@ -249,6 +249,35 @@ class CoThinker
      *
      * @param  array<int, array{role: string, content: string}>  $messages
      */
+    /**
+     * Vision: look at an uploaded image (sketch, photo, diagram, hand note)
+     * and propose a concise "core statement" for the research idea it suggests.
+     * Uses the same gateway; the configured model must be vision-capable.
+     */
+    public function coreStatementFromImage(string $absolutePath): string
+    {
+        $data = @file_get_contents($absolutePath);
+        if ($data === false) {
+            throw new \RuntimeException('Could not read the image file.');
+        }
+
+        $mime = function_exists('mime_content_type')
+            ? (mime_content_type($absolutePath) ?: 'image/jpeg')
+            : 'image/jpeg';
+        $dataUri = 'data:' . $mime . ';base64,' . base64_encode($data);
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' => [
+                ['type' => 'text', 'text' =>
+                    'This image is a sketch, photo, diagram or note behind a research idea. '
+                    . 'In one or two sentences, propose a clear "core statement" capturing the '
+                    . 'central idea. Return only the statement, no preamble.'],
+                ['type' => 'image_url', 'image_url' => ['url' => $dataUri]],
+            ]],
+        ], 200);
+    }
+
     public function chat(array $messages, int $maxTokens = 700): string
     {
         $response = Http::baseUrl(rtrim((string) config('ai.base_url'), '/'))

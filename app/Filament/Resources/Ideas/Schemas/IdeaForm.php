@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Ideas\Schemas;
 
 use App\Models\Category;
 use App\Models\Idea;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -31,6 +32,14 @@ class IdeaForm
                 Textarea::make('description')
                     ->label('Description')
                     ->rows(5)
+                    ->columnSpanFull(),
+                FileUpload::make('image_path')
+                    ->label('Image')
+                    ->image()
+                    ->disk('public')
+                    ->directory('idea-images')
+                    ->imagePreviewHeight('120')
+                    ->helperText('Optional. Save the idea, then use "Suggest core statement from image" to let AI read it.')
                     ->columnSpanFull(),
                 Radio::make('visibility')
                     ->options(Idea::VISIBILITIES)
