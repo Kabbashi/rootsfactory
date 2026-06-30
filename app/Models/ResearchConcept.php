@@ -27,7 +27,12 @@ class ResearchConcept extends Model
         'note' => 'Field note',
     ];
 
-    protected $fillable = ['user_id', 'topic_id', 'region_id', 'title', 'slug', 'type', 'body', 'status', 'published_at', 'pinned'];
+    protected $fillable = ['user_id', 'topic_id', 'region_id', 'origin_idea_id', 'title', 'slug', 'type', 'body', 'status', 'published_at', 'pinned'];
+
+    public function originIdea(): BelongsTo
+    {
+        return $this->belongsTo(Idea::class, 'origin_idea_id');
+    }
 
     protected $casts = [
         'pinned' => 'boolean',

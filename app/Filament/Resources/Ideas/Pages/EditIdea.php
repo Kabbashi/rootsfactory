@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\Ideas\Pages;
 
 use App\Filament\Resources\Ideas\IdeaResource;
+use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
 use App\Models\Idea;
+use App\Models\ResearchConcept;
 use App\Services\CoThinker;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -53,6 +55,41 @@ class EditIdea extends EditRecord
                         ->body('Review and edit it, then save.')
                         ->success()
                         ->send();
+                }),
+            Action::make('moveToConcept')
+                ->label('Move to Research Concept')
+                ->icon('heroicon-m-arrow-right-circle')
+                ->color('primary')
+                ->requiresConfirmation()
+                ->modalDescription('Create a Research Concept with the same name, carrying over this idea\'s text, categories and keywords. The idea stays in the pool.')
+                ->action(function (): void {
+                    /** @var Idea $idea */
+                    $idea = $this->record;
+
+                    $body = trim(
+                        ($idea->core_statement ? $idea->core_statement . "\n\n" : '')
+                        . (string) $idea->description
+                    );
+
+                    $concept = ResearchConcept::create([
+                        'user_id' => $idea->user_id,
+                        'origin_idea_id' => $idea->id,
+                        'title' => $idea->name,
+                        'body' => $body,
+                        'type' => 'brief',
+                        'status' => 'draft',
+                    ]);
+
+                    $concept->categories()->sync($idea->categories->pluck('id'));
+                    $concept->keywords()->sync($idea->keywords->pluck('id'));
+
+                    Notification::make()
+                        ->title('Moved to a Research Concept')
+                        ->body('Opened the new draft concept.')
+                        ->success()
+                        ->send();
+
+                    $this->redirect(ResearchConceptResource::getUrl('edit', ['record' => $concept]));
                 }),
             ...$this->reactionActions(),
             Action::make('collaborate')
