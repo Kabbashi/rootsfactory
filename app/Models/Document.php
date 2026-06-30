@@ -2,12 +2,47 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasKeywords;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 class Document extends Model
 {
+    use HasKeywords;
+
+    /** Short label per MIME type, for the file-format badge. */
+    public const TYPE_LABELS = [
+        'application/pdf' => 'PDF',
+        'image/jpeg' => 'JPG',
+        'image/png' => 'PNG',
+        'application/msword' => 'Word',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'Word',
+        'application/vnd.ms-excel' => 'Excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'Excel',
+        'application/vnd.ms-powerpoint' => 'PowerPoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'PowerPoint',
+        'text/csv' => 'CSV',
+        'text/plain' => 'Text',
+        'application/zip' => 'ZIP',
+    ];
+
+    /** Accepted upload MIME types for the library. */
+    public const ACCEPTED_TYPES = [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/csv',
+        'text/plain',
+        'application/zip',
+    ];
+
     /** Knowledge Library category, mapped to its human label. */
     public const KINDS = [
         'method' => 'Method',
@@ -51,6 +86,15 @@ class Document extends Model
                 Storage::disk('public')->delete($document->path);
             }
         });
+
+        // Detach shared keywords (polymorphic pivot has no DB cascade here).
+        static::deleting(fn (Document $document) => $document->keywords()->detach());
+    }
+
+    /** Short, human label for the file format (PDF, Word, Excel, …). */
+    public function typeLabel(): string
+    {
+        return self::TYPE_LABELS[$this->mime] ?? ($this->mime ?? '—');
     }
 
     /** Public URL to the stored file. */

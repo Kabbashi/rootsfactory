@@ -6,6 +6,7 @@ use App\Filament\Resources\Documents\Pages\CreateDocument;
 use App\Filament\Resources\Documents\Pages\EditDocument;
 use App\Filament\Resources\Documents\Pages\ListDocuments;
 use App\Models\Document;
+use App\Models\Keyword;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -13,6 +14,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -45,12 +47,12 @@ class DocumentResource extends Resource
                 ->disk('public')
                 ->directory('library')
                 ->visibility('public')
-                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                ->acceptedFileTypes(Document::ACCEPTED_TYPES)
                 ->maxSize(20480) // 20 MB
                 ->storeFileNamesIn('original_name')
                 ->downloadable()
                 ->openable()
-                ->helperText('PDF, JPG or PNG, up to 20 MB')
+                ->helperText('PDF, Word, Excel, PowerPoint, CSV, text, ZIP or images — up to 20 MB')
                 ->columnSpanFull(),
             TextInput::make('title')
                 ->maxLength(200)
@@ -72,6 +74,13 @@ class DocumentResource extends Resource
                 ->searchable()
                 ->preload()
                 ->placeholder('Global / unspecified'),
+            TagsInput::make('keyword_names')
+                ->label('Keywords')
+                ->splitKeys([';'])
+                ->suggestions(Keyword::orderBy('name')->pluck('name')->all())
+                ->dehydrated(false)
+                ->helperText('Separate with a semicolon; helps people find this resource.')
+                ->columnSpanFull(),
             Textarea::make('description')
                 ->rows(4)
                 ->columnSpanFull(),
@@ -97,12 +106,7 @@ class DocumentResource extends Resource
                     ->label('Type')
                     ->badge()
                     ->color('gray')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'application/pdf' => 'PDF',
-                        'image/jpeg' => 'JPG',
-                        'image/png' => 'PNG',
-                        default => $state ?? '—',
-                    }),
+                    ->formatStateUsing(fn (?string $state): string => Document::TYPE_LABELS[$state] ?? ($state ?? '—')),
                 TextColumn::make('size')
                     ->formatStateUsing(fn (?Document $record): string => $record?->sizeForHumans() ?? '—')
                     ->toggleable(),
@@ -117,6 +121,12 @@ class DocumentResource extends Resource
                     ->color('gray')
                     ->placeholder('—')
                     ->toggleable(),
+                TextColumn::make('keywords.name')
+                    ->label('Keywords')
+                    ->badge()
+                    ->color('gray')
+                    ->separator(',')
+                    ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Added by')
                     ->toggleable(),
@@ -129,13 +139,11 @@ class DocumentResource extends Resource
                 SelectFilter::make('kind')
                     ->label('Category')
                     ->options(Document::KINDS),
-                SelectFilter::make('mime')
-                    ->label('Type')
-                    ->options([
-                        'application/pdf' => 'PDF',
-                        'image/jpeg' => 'JPG',
-                        'image/png' => 'PNG',
-                    ]),
+                SelectFilter::make('keywords')
+                    ->label('Keyword')
+                    ->relationship('keywords', 'name')
+                    ->searchable()
+                    ->preload(),
                 SelectFilter::make('topic')
                     ->relationship('topic', 'name'),
                 SelectFilter::make('region')
