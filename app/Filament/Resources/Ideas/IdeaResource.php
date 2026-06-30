@@ -21,11 +21,11 @@ class IdeaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLightBulb;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Research';
+    protected static string|\UnitEnum|null $navigationGroup = 'Research Hub';
 
-    protected static ?string $modelLabel = 'Concept note';
+    protected static ?string $modelLabel = 'Research concept';
 
-    protected static ?string $pluralModelLabel = 'Concept notes';
+    protected static ?string $pluralModelLabel = 'Research Concepts';
 
     protected static ?int $navigationSort = 3;
 

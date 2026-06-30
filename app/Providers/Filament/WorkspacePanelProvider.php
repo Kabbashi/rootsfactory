@@ -7,7 +7,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Filament\Pages\AgentCenter;
-use App\Filament\Pages\ExecutiveCenter;
 use App\Filament\Pages\Portal;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -29,7 +28,7 @@ class WorkspacePanelProvider extends PanelProvider
             ->default()
             ->id('workspace')
             ->path('workspace')
-            ->brandName('Roots Factory')
+            ->brandName('Rootsfactory Research Network')
             ->homeUrl(fn (): string => Portal::getUrl())
             ->login()
             ->renderHook(
@@ -44,22 +43,19 @@ class WorkspacePanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Portal::class,
-                ExecutiveCenter::class,
                 AgentCenter::class,
             ])
             // Group icons are intentionally omitted: Filament forbids a group
             // and its items both having icons. The resources keep their icons,
             // so the groups carry only a label and ordering.
             ->navigationGroups([
-                'Overview',
-                'Research',
-                'Publications',
+                'Research Hub',
                 'Data Hub',
+                'Editorial Office',
+                'Publications',
                 'Knowledge Library',
                 'Community',
-                'Editorial Office',
                 'Help & Taxonomy',
-                'AI Assistant',
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

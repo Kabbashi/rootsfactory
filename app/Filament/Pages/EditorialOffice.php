@@ -18,9 +18,9 @@ class EditorialOffice extends Page
 
     protected static string|\UnitEnum|null $navigationGroup = 'Editorial Office';
 
-    protected static ?string $navigationLabel = 'Workflow';
+    protected static ?string $navigationLabel = 'Workflow Dashboard';
 
-    protected static ?string $title = 'Editorial Office';
+    protected static ?string $title = 'Workflow Dashboard';
 
     protected static ?int $navigationSort = 1;
 

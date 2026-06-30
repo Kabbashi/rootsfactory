@@ -34,7 +34,7 @@ class ResearchProjectResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBeaker;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Research';
+    protected static string|\UnitEnum|null $navigationGroup = 'Research Hub';
 
     protected static ?string $modelLabel = 'Research project';
 

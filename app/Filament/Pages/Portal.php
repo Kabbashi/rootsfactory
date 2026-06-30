@@ -24,7 +24,7 @@ class Portal extends Page
 
     protected static ?string $navigationLabel = 'Portal';
 
-    protected static ?string $title = 'Roots Factory';
+    protected static ?string $title = 'Rootsfactory Research Network';
 
     protected string $view = 'filament.pages.portal';
 
@@ -36,12 +36,6 @@ class Portal extends Page
     public function getCenters(): array
     {
         return [
-            [
-                'name' => 'Overview',
-                'description' => 'My projects, tasks and work in review.',
-                'icon' => 'heroicon-o-presentation-chart-line',
-                'url' => ExecutiveCenter::getUrl(),
-            ],
             [
                 'name' => 'Research',
                 'description' => 'Projects, field studies, baselines and evaluations.',
