@@ -13,6 +13,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class UserResource extends Resource
 {
@@ -39,19 +40,20 @@ class UserResource extends Resource
     }
 
     /**
-     * Members only manage their own profile; editors/admins see everyone.
-     * The AI system author is never listed.
+     * Everyone in the network sees every member (the directory); only the AI
+     * system author is hidden.
      */
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->where('role', '!=', 'system');
+        return parent::getEloquentQuery()->where('role', '!=', 'system');
+    }
 
+    /** Members edit only their own profile; editors/admins edit anyone. */
+    public static function canEdit(Model $record): bool
+    {
         $user = auth()->user();
-        if ($user && ! $user->isEditor()) {
-            $query->whereKey($user->getKey());
-        }
 
-        return $query;
+        return $user !== null && ($user->isEditor() || $record->getKey() === $user->getKey());
     }
 
     public static function getPages(): array
