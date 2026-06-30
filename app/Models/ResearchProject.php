@@ -28,14 +28,20 @@ class ResearchProject extends Model
         'planned' => 'Planned',
         'active' => 'Active',
         'completed' => 'Completed',
+        'published' => 'Published',
         'archived' => 'Archived',
     ];
 
     protected $fillable = [
-        'lead_user_id', 'title', 'slug', 'kind', 'status', 'summary', 'objectives',
+        'lead_user_id', 'origin_concept_id', 'title', 'slug', 'kind', 'status', 'summary', 'objectives',
         'methodology', 'research_questions', 'data_collection', 'findings',
         'start_date', 'end_date',
     ];
+
+    public function originConcept(): BelongsTo
+    {
+        return $this->belongsTo(ResearchConcept::class, 'origin_concept_id');
+    }
 
     protected $casts = [
         'start_date' => 'date',
@@ -47,10 +53,10 @@ class ResearchProject extends Model
         return 'slug';
     }
 
-    /** Projects the public may see — anything not still being planned. */
+    /** Projects the public may see — anything past the planning stage. */
     public function scopePublic(Builder $query): Builder
     {
-        return $query->whereIn('status', ['active', 'completed']);
+        return $query->whereIn('status', ['active', 'completed', 'published']);
     }
 
     protected static function booted(): void

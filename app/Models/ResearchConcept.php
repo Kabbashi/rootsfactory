@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
@@ -40,6 +41,36 @@ class ResearchConcept extends Model
     public function originIdea(): BelongsTo
     {
         return $this->belongsTo(Idea::class, 'origin_idea_id');
+    }
+
+    /** The research project this concept spawned once it went final. */
+    public function researchProject(): HasOne
+    {
+        return $this->hasOne(ResearchProject::class, 'origin_concept_id');
+    }
+
+    /**
+     * Create the research project this concept feeds, carrying its text and
+     * categories. Idempotent: one project per concept, never overwriting edits.
+     */
+    public function spawnResearchProject(): ResearchProject
+    {
+        $project = ResearchProject::firstOrCreate(
+            ['origin_concept_id' => $this->id],
+            [
+                'lead_user_id' => $this->user_id,
+                'title' => $this->title,
+                'summary' => $this->body,
+                'kind' => 'project',
+                'status' => 'planned',
+            ],
+        );
+
+        if ($project->wasRecentlyCreated) {
+            $project->categories()->sync($this->categories->pluck('id'));
+        }
+
+        return $project;
     }
 
     /** Concepts grown from a public idea carry the social layer (P7). */
@@ -121,6 +152,18 @@ class ResearchConcept extends Model
                 && $idea->wasChanged('status')
                 && $idea->status === 'in_discussion') {
                 GenerateAiInsight::for($idea, 'summarize');
+            }
+
+            // When a concept goes final, its text flows into a research project.
+            if ($idea->wasChanged('status') && $idea->status === 'final') {
+                $idea->spawnResearchProject();
+            }
+        });
+
+        // A concept created directly as final also spawns its project.
+        static::created(function (ResearchConcept $idea): void {
+            if ($idea->status === 'final') {
+                $idea->spawnResearchProject();
             }
         });
     }

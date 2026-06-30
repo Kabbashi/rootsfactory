@@ -77,6 +77,7 @@ class ResearchProjectResource extends Resource
                     ->color(fn (?string $state): string => match ($state) {
                         'active' => 'success',
                         'completed' => 'info',
+                        'published' => 'success',
                         'archived' => 'gray',
                         default => 'warning',
                     }),
