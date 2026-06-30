@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Jobs\GenerateAiInsight;
+use App\Models\Concerns\HasCategories;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Support\Str;
 
 class ResearchConcept extends Model
 {
+    use HasCategories;
+
     public const STATUSES = ['draft', 'in_discussion', 'published'];
 
     /** Publication types, mapped to their human label (also the badge text). */

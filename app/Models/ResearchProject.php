@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasCategories;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Support\Str;
 
 class ResearchProject extends Model
 {
+    use HasCategories;
+
     /** Kind of research, mapped to its human label. */
     public const KINDS = [
         'project' => 'Research project',
