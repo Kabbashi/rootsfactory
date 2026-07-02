@@ -42,6 +42,69 @@ class EditIdea extends EditRecord
                 ->icon('heroicon-m-share')
                 ->color('gray')
                 ->url(fn (): string => IdeaMap::getUrl() . '?idea=' . $this->record->id),
+            ActionGroup::make([
+                Action::make('alice_expand')
+                    ->label('Expand with Alice')
+                    ->icon('heroicon-m-arrows-pointing-out')
+                    ->action(function (CoThinker $ai): void {
+                        $idea = $this->record;
+                        $context = "Idea: {$idea->name}\n"
+                            . 'Core statement: ' . ($idea->core_statement ?: '(none)') . "\n"
+                            . 'Description: ' . ($idea->description ?: '(none)');
+
+                        try {
+                            $draft = $ai->assist(
+                                'You are Alice, helping shape an early research idea. Research the topic and expand '
+                                . 'it into a fuller description: what it is, why it matters, how it could work, and '
+                                . 'open questions. Keep it a proposal, not a claim of fact.',
+                                $context,
+                                $this->ideaPdfText(),
+                            );
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()->title('Alice is unavailable right now')->danger()->send();
+
+                            return;
+                        }
+
+                        $existing = trim((string) ($this->data['description'] ?? ''));
+                        $this->data['description'] = $existing === '' ? $draft : $existing . "\n\n---\n\n" . $draft;
+
+                        Notification::make()->title('Alice expanded the idea')
+                            ->body('Review the description and Save.')->success()->send();
+                    }),
+                Action::make('alice_core')
+                    ->label('Suggest core statement')
+                    ->icon('heroicon-m-sparkles')
+                    ->action(function (CoThinker $ai): void {
+                        $idea = $this->record;
+                        $context = "Idea name: {$idea->name}\nDescription: " . ($idea->description ?: '(none)');
+
+                        try {
+                            $draft = $ai->assist(
+                                'Propose a concise one- or two-sentence core statement capturing the heart of this '
+                                . 'idea. Return only the statement, no preamble.',
+                                $context,
+                                '',
+                                200,
+                            );
+                        } catch (\Throwable $e) {
+                            report($e);
+                            Notification::make()->title('Alice is unavailable right now')->danger()->send();
+
+                            return;
+                        }
+
+                        $this->data['core_statement'] = trim($draft);
+
+                        Notification::make()->title('Alice suggested a core statement')
+                            ->body('Review and Save.')->success()->send();
+                    }),
+            ])
+                ->label('Ask Alice')
+                ->icon('heroicon-m-sparkles')
+                ->button()
+                ->color('gray'),
             Action::make('coreFromImage')
                 ->label('Suggest core statement from image')
                 ->icon('heroicon-m-sparkles')
@@ -133,6 +196,18 @@ class EditIdea extends EditRecord
                 }),
             DeleteAction::make(),
         ];
+    }
+
+    /** Text of the first PDF attached to the idea, for Alice to read. */
+    private function ideaPdfText(): string
+    {
+        foreach ((array) ($this->record->attachments ?? []) as $path) {
+            if (is_string($path) && str_ends_with(strtolower($path), '.pdf')) {
+                return app(CoThinker::class)->pdfTextFromUpload($path);
+            }
+        }
+
+        return '';
     }
 
     /**

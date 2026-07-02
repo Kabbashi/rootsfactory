@@ -84,31 +84,34 @@ class EditResearchConcept extends EditRecord
                 ->button();
         }
 
-        // Concepts grown from public ideas carry the social layer — allowed
-        // even when final, since reacting/joining is not editing.
+        // Concepts grown from public ideas carry the emoji reactions — allowed
+        // even when final, since reacting is not editing.
         if ($this->record->isFromPublicIdea()) {
             $actions = array_merge($actions, $this->reactionActions());
-
-            $actions[] = Action::make('collaborate')
-                ->label('Offer to collaborate')
-                ->icon('heroicon-m-hand-raised')
-                ->color('primary')
-                ->visible(fn (): bool => $this->record->user_id !== auth()->id())
-                ->schema([
-                    Textarea::make('message')->label('Message (optional)')->rows(3),
-                ])
-                ->action(function (array $data): void {
-                    $this->record->collaborationOffers()->updateOrCreate(
-                        ['user_id' => auth()->id()],
-                        ['message' => $data['message'] ?? null],
-                    );
-
-                    Notification::make()
-                        ->title('Your offer to collaborate was sent')
-                        ->success()
-                        ->send();
-                });
         }
+
+        // Anyone but the owner can offer to collaborate on a concept. The offer
+        // (with its message) lands in the "Collaboration offers" tab for the
+        // owner, and the concept shows up in the offerer's Workflow Dashboard.
+        $actions[] = Action::make('collaborate')
+            ->label('Offer to collaborate')
+            ->icon('heroicon-m-hand-raised')
+            ->color('primary')
+            ->visible(fn (): bool => $this->record->user_id !== auth()->id())
+            ->schema([
+                Textarea::make('message')->label('Message (optional)')->rows(3),
+            ])
+            ->action(function (array $data): void {
+                $this->record->collaborationOffers()->updateOrCreate(
+                    ['user_id' => auth()->id()],
+                    ['message' => $data['message'] ?? null],
+                );
+
+                Notification::make()
+                    ->title('Your offer to collaborate was sent')
+                    ->success()
+                    ->send();
+            });
 
         if (! $this->isLocked()) {
             $actions[] = DeleteAction::make();
