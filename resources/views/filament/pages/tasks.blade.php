@@ -2,22 +2,23 @@
     @php($board = $this->getBoard())
     @php($me = auth()->id())
     @php($statusColors = ['todo' => 'gray', 'doing' => 'info', 'done' => 'success'])
-    @php($bucketColors = ['idea' => 'warning', 'concept' => 'info', 'project' => 'success'])
 
     <p class="text-sm text-gray-500 dark:text-gray-400">
-        Your tasks across the network — assigned to you or delegated by you — grouped by what they are about.
+        Your tasks across the network — assigned to you or delegated by you — grouped by bucket.
+        Idea, Concept and Project are the default buckets; add your own with “Add bucket”.
     </p>
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        @foreach (\App\Models\Task::BUCKETS as $key => $label)
-            <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-white/5">
+    <div class="flex gap-4 overflow-x-auto pb-2">
+        @foreach ($board as $column)
+            @php($bucket = $column['bucket'])
+            <div class="w-72 shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-white/5">
                 <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <span class="font-semibold text-gray-700 dark:text-gray-200">{{ $label }}</span>
-                    <x-filament::badge :color="$bucketColors[$key] ?? 'gray'">{{ $board[$key]->count() }}</x-filament::badge>
+                    <span class="font-semibold text-gray-700 dark:text-gray-200">{{ $bucket->name }}</span>
+                    <x-filament::badge :color="$bucket->isSystem() ? 'primary' : 'gray'">{{ $column['tasks']->count() }}</x-filament::badge>
                 </div>
 
                 <div class="p-3 space-y-3">
-                    @forelse ($board[$key] as $task)
+                    @forelse ($column['tasks'] as $task)
                         <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-sm">
                             <div class="flex items-start justify-between gap-2">
                                 <span class="font-medium text-gray-900 dark:text-gray-100 text-sm">{{ $task->title }}</span>

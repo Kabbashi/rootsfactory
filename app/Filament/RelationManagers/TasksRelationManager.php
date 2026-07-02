@@ -2,6 +2,9 @@
 
 namespace App\Filament\RelationManagers;
 
+use App\Models\Bucket;
+use App\Models\Idea;
+use App\Models\ResearchConcept;
 use App\Models\Task;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -64,6 +67,14 @@ class TasksRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()->mutateDataUsing(function (array $data): array {
                     $data['created_by'] ??= auth()->id();
+
+                    // Drop the task in the system bucket for this subject type.
+                    $type = match (get_class($this->getOwnerRecord())) {
+                        Idea::class => 'idea',
+                        ResearchConcept::class => 'concept',
+                        default => 'project',
+                    };
+                    $data['bucket_id'] ??= Bucket::forType($type)?->id;
 
                     return $data;
                 }),

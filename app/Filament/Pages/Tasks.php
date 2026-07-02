@@ -5,10 +5,12 @@ namespace App\Filament\Pages;
 use App\Filament\Resources\Ideas\IdeaResource;
 use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
 use App\Filament\Resources\ResearchProjects\ResearchProjectResource;
+use App\Models\Bucket;
 use App\Models\Idea;
 use App\Models\ResearchConcept;
 use App\Models\ResearchProject;
 use App\Models\Task;
+use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -22,7 +24,8 @@ use Filament\Support\Icons\Heroicon;
 
 /**
  * A Planner-style board of my tasks — the ones assigned to me and the ones I
- * have delegated to others — grouped into Idea, Concept and Project buckets.
+ * have delegated — grouped into buckets. Idea, Concept and Project are the
+ * default buckets; members can add their own.
  */
 class Tasks extends Page
 {
@@ -54,26 +57,34 @@ class Tasks extends Page
                 ->schema([
                     Select::make('subject_type')
                         ->label('About')
-                        ->options(Task::BUCKETS)
+                        ->options(['idea' => 'Idea', 'concept' => 'Concept', 'project' => 'Project'])
                         ->required()
                         ->live()
-                        ->afterStateUpdated(fn (callable $set) => $set('subject_id', null)),
+                        ->afterStateUpdated(function (callable $set, ?string $state): void {
+                            $set('subject_id', null);
+                            if ($state && $bucket = Bucket::forType($state)) {
+                                $set('bucket_id', $bucket->id);
+                            }
+                        }),
                     Select::make('subject_id')
                         ->label('Which one')
                         ->options(fn (Get $get): array => $this->subjectOptions($get('subject_type')))
                         ->searchable()
                         ->required()
                         ->visible(fn (Get $get): bool => filled($get('subject_type'))),
+                    Select::make('bucket_id')
+                        ->label('Bucket')
+                        ->options(fn (): array => Bucket::orderBy('sort')->pluck('name', 'id')->all())
+                        ->required(),
                     TextInput::make('title')->required()->maxLength(200)->columnSpanFull(),
                     Select::make('assignee_id')->label('Assign to')
-                        ->options(fn (): array => \App\Models\User::query()->where('role', '!=', 'system')->orderBy('name')->pluck('name', 'id')->all())
-                        ->searchable()
-                        ->default(auth()->id())
+                        ->options(fn (): array => $this->memberOptions())
+                        ->searchable()->default(auth()->id())
                         ->helperText('Yourself or another member.'),
                     Select::make('status')->options(Task::STATUSES)->default('todo')->required(),
                     DatePicker::make('due_at')->label('Due')->native(false),
                     Select::make('collaborators')->label('Working on it with')
-                        ->options(fn (): array => \App\Models\User::query()->where('role', '!=', 'system')->orderBy('name')->pluck('name', 'id')->all())
+                        ->options(fn (): array => $this->memberOptions())
                         ->multiple()->searchable()->columnSpanFull(),
                     Textarea::make('description')->rows(3)->columnSpanFull(),
                 ])
@@ -86,6 +97,7 @@ class Tasks extends Page
                     $task = Task::create([
                         'taskable_type' => $type,
                         'taskable_id' => $data['subject_id'],
+                        'bucket_id' => $data['bucket_id'] ?? Bucket::forType($data['subject_type'])?->id,
                         'title' => $data['title'],
                         'assignee_id' => $data['assignee_id'] ?: null,
                         'created_by' => auth()->id(),
@@ -99,6 +111,20 @@ class Tasks extends Page
                     }
 
                     Notification::make()->title('Task created')->success()->send();
+                }),
+            Action::make('addBucket')
+                ->label('Add bucket')
+                ->icon('heroicon-m-plus-circle')
+                ->color('gray')
+                ->schema([
+                    TextInput::make('name')->required()->maxLength(60),
+                ])
+                ->action(function (array $data): void {
+                    Bucket::create([
+                        'name' => $data['name'],
+                        'sort' => (int) Bucket::max('sort') + 1,
+                    ]);
+                    Notification::make()->title('Bucket added')->success()->send();
                 }),
         ];
     }
@@ -114,10 +140,16 @@ class Tasks extends Page
         };
     }
 
+    /** @return array<int, string> */
+    private function memberOptions(): array
+    {
+        return User::query()->where('role', '!=', 'system')->orderBy('name')->pluck('name', 'id')->all();
+    }
+
     /**
      * My tasks (assigned to me or delegated by me), grouped into buckets.
      *
-     * @return array<string, \Illuminate\Support\Collection<int, Task>>
+     * @return array<int, array{bucket: Bucket, tasks: \Illuminate\Support\Collection<int, Task>}>
      */
     public function getBoard(): array
     {
@@ -129,12 +161,22 @@ class Tasks extends Page
             ->orderByRaw('due_at is null, due_at asc')
             ->get();
 
-        $buckets = [];
-        foreach (array_keys(Task::BUCKETS) as $key) {
-            $buckets[$key] = $tasks->filter(fn (Task $t): bool => $t->bucket() === $key)->values();
+        $buckets = Bucket::orderBy('sort')->orderBy('id')->get();
+        $systemByType = $buckets->whereNotNull('system_type')->keyBy('system_type');
+
+        $board = [];
+        foreach ($buckets as $bucket) {
+            $board[$bucket->id] = ['bucket' => $bucket, 'tasks' => collect()];
         }
 
-        return $buckets;
+        foreach ($tasks as $task) {
+            $bucketId = $task->bucket_id ?? $systemByType->get($task->bucketKey())?->id;
+            if ($bucketId && isset($board[$bucketId])) {
+                $board[$bucketId]['tasks']->push($task);
+            }
+        }
+
+        return array_values($board);
     }
 
     /** Edit URL of a task's subject, for the "Open" link on a card. */
@@ -146,7 +188,7 @@ class Tasks extends Page
             return null;
         }
 
-        return match ($task->bucket()) {
+        return match ($task->bucketKey()) {
             'idea' => IdeaResource::getUrl('edit', ['record' => $subject]),
             'concept' => ResearchConceptResource::getUrl('edit', ['record' => $subject]),
             'project' => ResearchProjectResource::getUrl('edit', ['record' => $subject]),

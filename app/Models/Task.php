@@ -24,7 +24,7 @@ class Task extends Model
 
     protected $fillable = [
         'research_project_id', 'assignee_id', 'created_by', 'taskable_type', 'taskable_id',
-        'title', 'description', 'status', 'due_at',
+        'bucket_id', 'title', 'description', 'status', 'due_at',
     ];
 
     protected $casts = [
@@ -60,8 +60,14 @@ class Task extends Model
         return $this->belongsToMany(User::class, 'task_user')->withTimestamps();
     }
 
-    /** Bucket key ('idea'|'concept'|'project') derived from the subject type. */
-    public function bucket(): string
+    /** The board column this task sits in. */
+    public function bucket(): BelongsTo
+    {
+        return $this->belongsTo(Bucket::class);
+    }
+
+    /** Subject-type key ('idea'|'concept'|'project') derived from the subject. */
+    public function bucketKey(): string
     {
         return match ($this->taskable_type) {
             Idea::class => 'idea',
