@@ -127,6 +127,11 @@ class EditResearchConcept extends EditRecord
             ->action(function (): void {
                 $project = $this->record->spawnResearchProject();
 
+                // Carry over the concept's categories (idempotent on re-click).
+                $project->categories()->syncWithoutDetaching(
+                    $this->record->categories()->pluck('categories.id')->all()
+                );
+
                 Notification::make()
                     ->title($project->wasRecentlyCreated ? 'Project created from this concept' : 'Opened the existing project')
                     ->success()

@@ -12,6 +12,7 @@ use App\Filament\Resources\ResearchProjects\RelationManagers\EvidenceRelationMan
 use App\Filament\Resources\ResearchProjects\RelationManagers\ReferencesRelationManager;
 use App\Filament\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\TeamRelationManager;
+use App\Models\Category;
 use App\Models\ResearchProject;
 use App\Services\CoThinker;
 use BackedEnum;
@@ -58,6 +59,17 @@ class ResearchProjectResource extends Resource
                 Select::make('lead_user_id')->label('Lead')->relationship('lead', 'name')->searchable()->preload(),
                 Select::make('topics')->relationship('topics', 'name')->multiple()->searchable()->preload(),
                 Select::make('regions')->label('Countries / regions')->relationship('regions', 'name')->multiple()->searchable()->preload(),
+                Select::make('categories')
+                    ->label('Categories')
+                    ->relationship('categories', 'name')
+                    ->getOptionLabelFromRecordUsing(fn (Category $record): string => $record->qualifiedName())
+                    ->multiple()->searchable()->preload()
+                    ->createOptionForm([
+                        TextInput::make('name')->required()->maxLength(120),
+                        Select::make('parent_id')->label('Parent category')->relationship('parent', 'name')
+                            ->searchable()->preload()->placeholder('— top-level category —'),
+                    ])
+                    ->columnSpanFull(),
                 DatePicker::make('start_date')->native(false),
                 DatePicker::make('end_date')->native(false),
                 Textarea::make('summary')->rows(3)->columnSpanFull(),

@@ -52,49 +52,23 @@ class ResearchConcept extends Model
     }
 
     /**
-     * Create the research project this concept feeds, carrying its text and
-     * categories. Idempotent: one project per concept, never overwriting edits.
+     * Create the research project this concept feeds, carrying its title and
+     * text. Idempotent: one project per concept, never overwriting edits.
      */
     public function spawnResearchProject(): ResearchProject
     {
-        // Capture the concept's categories first, straight from the pivot.
-        $categoryIds = collect(
-            \Illuminate\Support\Facades\DB::table('categorizables')
-                ->where('categorizable_id', $this->id)
-                ->get()
-        )
-            ->where('categorizable_type', self::class)
-            ->pluck('category_id')
-            ->all();
-
-        // One project per concept: return the existing one if it is already there.
-        $existing = ResearchProject::where('origin_concept_id', $this->id)->first();
-        if ($existing) {
-            return $existing;
-        }
-
-        $project = ResearchProject::create([
-            'origin_concept_id' => $this->id,
-            'lead_user_id' => $this->user_id,
-            'title' => $this->title,
-            'summary' => $this->body,
-            'kind' => 'project',
-            'status' => 'planned',
-        ]);
-
-        $now = now();
-        foreach ($categoryIds as $categoryId) {
-            \Illuminate\Support\Facades\DB::table('categorizables')->insert([
-                'category_id' => $categoryId,
-                'categorizable_id' => $project->getKey(),
-                'categorizable_type' => $project->getMorphClass(),
-                'sort' => 0,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
-
-        return $project;
+        // One project per concept, idempotent. Category carry-over happens in
+        // the caller (the edit action), which holds the loaded concept.
+        return ResearchProject::firstOrCreate(
+            ['origin_concept_id' => $this->id],
+            [
+                'lead_user_id' => $this->user_id,
+                'title' => $this->title,
+                'summary' => $this->body,
+                'kind' => 'project',
+                'status' => 'planned',
+            ],
+        );
     }
 
     /** Concepts grown from a public idea carry the social layer (P7). */
