@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\EditAction;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
@@ -30,13 +31,12 @@ class ViewUser extends ViewRecord
             Section::make()->schema([
                 TextEntry::make('name')->weight('bold')->size('lg'),
                 TextEntry::make('title')->label('Title / affiliation')->placeholder('—'),
-                TextEntry::make('role')->badge(),
                 TextEntry::make('bio')
                     ->label('Biography')
                     ->placeholder('No biography yet.')
                     ->prose()
                     ->columnSpanFull(),
-            ])->columns(3),
+            ])->columns(2),
             Section::make('Scholarly profile')->schema([
                 TextEntry::make('expertise')->label('Areas of expertise')->badge()->placeholder('—'),
                 TextEntry::make('country_experience')->label('Country experience')->badge()->placeholder('—'),
@@ -56,6 +56,19 @@ class ViewUser extends ViewRecord
                     ->url(fn (?string $state): ?string => $state)
                     ->openUrlInNewTab()
                     ->color('primary'),
+                RepeatableEntry::make('links')
+                    ->label('More links')
+                    ->schema([
+                        TextEntry::make('label')->hiddenLabel()
+                            ->url(fn ($state, $record) => null),
+                        TextEntry::make('url')->hiddenLabel()
+                            ->url(fn (?string $state): ?string => $state)
+                            ->openUrlInNewTab()
+                            ->color('primary'),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->visible(fn ($record): bool => filled($record->links)),
             ])->columns(2),
         ]);
     }

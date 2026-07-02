@@ -16,13 +16,12 @@ class MyProfile extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserCircle;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Community';
-
+    // No group and a very low sort: sits at the very top, above Portal.
     protected static ?string $navigationLabel = 'My Profile';
 
     protected static ?string $title = 'My Profile';
 
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = -3;
 
     protected string $view = 'filament.pages.my-profile';
 

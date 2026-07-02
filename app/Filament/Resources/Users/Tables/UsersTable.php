@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
 
 class UsersTable
@@ -13,27 +13,15 @@ class UsersTable
     {
         return $table
             ->defaultSort('name')
+            ->contentGrid(['md' => 2, 'xl' => 3])
             ->columns([
-                TextColumn::make('name')
-                    ->label('Name')
-                    ->searchable()
-                    ->weight('medium'),
-                TextColumn::make('title')
-                    ->label('Title')
-                    ->placeholder('—')
-                    ->limit(40),
-                TextColumn::make('role')
-                    ->label('Role')
-                    ->badge(),
-                TextColumn::make('research_concepts_count')
-                    ->label('Research concepts')
-                    ->counts('researchConcepts')
-                    ->alignCenter()
-                    ->badge(),
+                // Hidden but searchable, so the search bar still works over the cards.
+                TextColumn::make('name')->searchable()->extraAttributes(['class' => 'hidden']),
+                TextColumn::make('title')->searchable()->extraAttributes(['class' => 'hidden']),
+                ViewColumn::make('card')->view('filament.tables.member-card'),
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
             ]);
     }
 }

@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 
 #[Fillable(['name', 'slug', 'title', 'bio', 'email', 'password', 'role', 'sso_subject',
     'expertise', 'country_experience', 'languages', 'method_competencies', 'profile_public',
-    'linkedin', 'instagram'])]
+    'linkedin', 'instagram', 'links'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -43,6 +43,7 @@ class User extends Authenticatable implements FilamentUser
             'languages' => 'array',
             'method_competencies' => 'array',
             'profile_public' => 'boolean',
+            'links' => 'array',
         ];
     }
 

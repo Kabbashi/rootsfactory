@@ -2,8 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use App\Models\User;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -31,12 +30,6 @@ class UserForm
                         ->label('Email')
                         ->disabled()
                         ->dehydrated(false),
-                    Select::make('role')
-                        ->options(User::ROLES)
-                        ->required()
-                        // Only editors/admins may change roles.
-                        ->disabled(fn (): bool => ! (auth()->user()?->isEditor() ?? false))
-                        ->dehydrated(fn (): bool => auth()->user()?->isEditor() ?? false),
                     Textarea::make('bio')
                         ->label('Bio')
                         ->rows(5)
@@ -67,6 +60,18 @@ class UserForm
                         ->prefixIcon('heroicon-m-link')
                         ->placeholder('https://www.instagram.com/…')
                         ->maxLength(255),
+                    Repeater::make('links')
+                        ->label('More links')
+                        ->schema([
+                            TextInput::make('label')->placeholder('e.g. Website, ResearchGate, ORCID')->maxLength(80),
+                            TextInput::make('url')->url()->placeholder('https://…')->maxLength(255)->required(),
+                        ])
+                        ->columns(2)
+                        ->addActionLabel('Add a link')
+                        ->reorderable()
+                        ->collapsible()
+                        ->defaultItems(0)
+                        ->columnSpanFull(),
                 ])->columns(2)->collapsible(),
                 Section::make('Password')
                     ->description('Leave blank to keep your current password.')
