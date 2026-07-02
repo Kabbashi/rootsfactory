@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Users;
 
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\Schemas\UserForm;
 use App\Filament\Resources\Users\Tables\UsersTable;
 use App\Models\User;
@@ -56,10 +57,17 @@ class UserResource extends Resource
         return $user !== null && ($user->isEditor() || $record->getKey() === $user->getKey());
     }
 
+    /** Every member can read every profile in full. */
+    public static function canView(Model $record): bool
+    {
+        return auth()->check();
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ListUsers::route('/'),
+            'view' => ViewUser::route('/{record}'),
             'edit' => EditUser::route('/{record}/edit'),
         ];
     }
