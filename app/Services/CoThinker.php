@@ -254,6 +254,90 @@ class CoThinker
         ], 200);
     }
 
+    /**
+     * Pull readable text out of a PDF so Alice can summarise the real content,
+     * not just the metadata. Returns a trimmed excerpt (empty on failure).
+     */
+    public function extractPdfText(string $absolutePath, int $maxChars = 8000): string
+    {
+        if (! is_file($absolutePath)) {
+            return '';
+        }
+
+        try {
+            $pdf = (new \Smalot\PdfParser\Parser())->parseFile($absolutePath);
+            $text = $pdf->getText();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return '';
+        }
+
+        $text = trim((string) preg_replace('/\s+/', ' ', $text));
+
+        return mb_substr($text, 0, $maxChars);
+    }
+
+    /**
+     * Alice AI: from whatever bibliographic metadata a member has entered for a
+     * Knowledge Database entry, draft an abstract and suggest a topic, keywords
+     * and categories. Returns a structured array; missing keys mean "no
+     * suggestion". Never invents authors, figures or facts not implied by the
+     * material.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return array{abstract?: string, topic?: string, keywords?: array<int, string>, categories?: array<int, string>}
+     */
+    public function describeLibraryEntry(array $meta): array
+    {
+        $lines = [];
+        foreach ($meta as $label => $value) {
+            $value = is_array($value) ? implode(', ', $value) : (string) $value;
+            if (trim($value) !== '') {
+                $lines[] = "{$label}: {$value}";
+            }
+        }
+        $material = implode("\n", $lines) ?: '(no metadata provided)';
+
+        $topics = Topic::query()->pluck('name')->implode(', ');
+
+        $raw = $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                "You are Alice, building a research knowledge database. From the bibliographic "
+                . "material below, produce a JSON object with these keys:\n"
+                . "- \"abstract\": a concise 80–150 word abstract/summary of what this work is about. "
+                . "Base it ONLY on the material; do not invent findings, figures or claims. If there is "
+                . "too little to summarise, return an empty string.\n"
+                . "- \"topic\": a single short research topic label (prefer one of the existing topics if it fits: "
+                . ($topics !== '' ? $topics : 'none yet') . ").\n"
+                . "- \"keywords\": an array of 4–8 short keyword strings.\n"
+                . "- \"categories\": an array of 1–3 short thematic category strings.\n"
+                . "Return ONLY the JSON object, no prose, no code fences.\n\n"
+                . "MATERIAL:\n{$material}",
+            ],
+        ], maxTokens: 600);
+
+        // Strip any accidental code fences, then decode.
+        $json = trim(preg_replace('/^```(?:json)?|```$/m', '', $raw) ?? $raw);
+        $data = json_decode($json, true);
+
+        if (! is_array($data)) {
+            return [];
+        }
+
+        return array_filter([
+            'abstract' => isset($data['abstract']) ? trim((string) $data['abstract']) : null,
+            'topic' => isset($data['topic']) ? trim((string) $data['topic']) : null,
+            'keywords' => isset($data['keywords']) && is_array($data['keywords'])
+                ? array_values(array_filter(array_map('trim', $data['keywords'])))
+                : null,
+            'categories' => isset($data['categories']) && is_array($data['categories'])
+                ? array_values(array_filter(array_map('trim', $data['categories'])))
+                : null,
+        ], fn ($v) => $v !== null && $v !== '' && $v !== []);
+    }
+
     public function chat(array $messages, int $maxTokens = 700): string
     {
         $response = Http::baseUrl(rtrim((string) config('ai.base_url'), '/'))

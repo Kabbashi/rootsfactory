@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasCategories;
 use App\Models\Concerns\HasKeywords;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Facades\Storage;
 
 class Document extends Model
 {
+    use HasCategories;
     use HasKeywords;
 
     /** Short label per MIME type, for the file-format badge. */
@@ -43,7 +46,7 @@ class Document extends Model
         'application/zip',
     ];
 
-    /** Knowledge Library category, mapped to its human label. */
+    /** Knowledge resource kind, mapped to its human label. */
     public const KINDS = [
         'method' => 'Method',
         'guide' => 'Interview guide',
@@ -55,9 +58,25 @@ class Document extends Model
         'template' => 'Template',
     ];
 
+    /** Bibliographic type of the entry. */
+    public const TYPES = [
+        'book' => 'Book',
+        'book_chapter' => 'Book chapter',
+        'journal_article' => 'Journal article',
+        'report' => 'Report',
+        'working_paper' => 'Working paper',
+        'policy_brief' => 'Policy brief',
+        'thesis' => 'Thesis / dissertation',
+        'dataset' => 'Dataset',
+        'website' => 'Website',
+        'other' => 'Other',
+    ];
+
     protected $fillable = [
-        'title', 'kind', 'description', 'path', 'original_name', 'mime', 'size',
-        'topic_id', 'region_id', 'user_id',
+        'title', 'kind', 'type', 'description', 'path', 'original_name', 'mime', 'size',
+        'topic_id', 'region_id', 'user_id', 'assigned_to',
+        'authors', 'institution', 'subtitle', 'published_by', 'year', 'pages',
+        'website', 'table_of_contents', 'abstract', 'task',
     ];
 
     protected static function booted(): void
@@ -140,5 +159,35 @@ class Document extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** The member responsible for the entry's task. */
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /** Cross-references to other library entries. */
+    public function relatedDocuments(): MorphToMany
+    {
+        return $this->morphedByMany(self::class, 'linkable', 'document_links');
+    }
+
+    /** Cross-references to ideas in the pool. */
+    public function ideas(): MorphToMany
+    {
+        return $this->morphedByMany(Idea::class, 'linkable', 'document_links');
+    }
+
+    /** Cross-references to research concepts. */
+    public function researchConcepts(): MorphToMany
+    {
+        return $this->morphedByMany(ResearchConcept::class, 'linkable', 'document_links');
+    }
+
+    /** Cross-references to research projects. */
+    public function researchProjects(): MorphToMany
+    {
+        return $this->morphedByMany(ResearchProject::class, 'linkable', 'document_links');
     }
 }
