@@ -12,12 +12,11 @@ use App\Models\Keyword;
 use App\Models\Topic;
 use App\Services\CoThinker;
 use BackedEnum;
-use Filament\Actions\Action as TableAction;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Actions;
-use Filament\Forms\Components\Actions\Action;
+use Filament\Schemas\Components\Actions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -234,7 +233,7 @@ class DocumentResource extends Resource
                 SelectFilter::make('keywords')->label('Keyword')->relationship('keywords', 'name')->searchable()->preload(),
             ])
             ->recordActions([
-                TableAction::make('open')
+                Action::make('open')
                     ->icon('heroicon-m-arrow-top-right-on-square')
                     ->url(fn (Document $record): ?string => $record->url())
                     ->openUrlInNewTab()
