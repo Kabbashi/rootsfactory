@@ -11,6 +11,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -43,6 +44,22 @@ class DataItemResource extends Resource
             DatePicker::make('collected_at')->label('Collection date')->native(false),
             Select::make('codes')->relationship('codes', 'name')->multiple()->searchable()->preload()
                 ->helperText('Apply qualitative codes to this item.')->columnSpanFull(),
+            FileUpload::make('path')
+                ->label('File')
+                ->disk('public')
+                ->directory('data-items')
+                ->acceptedFileTypes([
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'image/jpeg',
+                    'image/png',
+                ])
+                ->maxSize(20480)
+                ->downloadable()
+                ->openable()
+                ->helperText('Optional source file — PDF, Word, JPG or PNG (max 20 MB).')
+                ->columnSpanFull(),
             Textarea::make('content')->rows(14)->columnSpanFull(),
         ]);
     }

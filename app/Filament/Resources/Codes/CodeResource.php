@@ -52,6 +52,13 @@ class CodeResource extends Resource
                 ])
                 ->helperText('From the shared category taxonomy — the same tree used across ideas, concepts and projects.'),
             ColorPicker::make('color'),
+            Select::make('ideas')->label('Ideas')->relationship('ideas', 'name')
+                ->multiple()->searchable()->preload()
+                ->helperText('Which ideas this code applies to.'),
+            Select::make('researchConcepts')->label('Research concepts')->relationship('researchConcepts', 'title')
+                ->multiple()->searchable()->preload(),
+            Select::make('researchProjects')->label('Research projects')->relationship('researchProjects', 'title')
+                ->multiple()->searchable()->preload(),
             Textarea::make('description')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -67,10 +74,20 @@ class CodeResource extends Resource
                     ->badge()
                     ->state(fn (Code $record): ?string => $record->category?->qualifiedName())
                     ->placeholder('—'),
-                TextColumn::make('data_items_count')->label('Coded')->counts('dataItems')->badge()->color('gray'),
+                TextColumn::make('data_items_count')->label('Coded items')->counts('dataItems')->badge()->color('gray'),
+                TextColumn::make('assignment')
+                    ->label('Assigned to')
+                    ->state(fn (Code $record): string => $record->assignmentSummary())
+                    ->badge()
+                    ->color('success')
+                    ->placeholder('—'),
             ])
+            ->modifyQueryUsing(fn ($query) => $query->withCount(['ideas', 'researchConcepts', 'researchProjects']))
             ->filters([
                 SelectFilter::make('category')->relationship('category', 'name'),
+                SelectFilter::make('ideas')->label('Idea')->relationship('ideas', 'name')->searchable()->preload(),
+                SelectFilter::make('researchConcepts')->label('Concept')->relationship('researchConcepts', 'title')->searchable()->preload(),
+                SelectFilter::make('researchProjects')->label('Project')->relationship('researchProjects', 'title')->searchable()->preload(),
             ])
             ->recordActions([EditAction::make()]);
     }
