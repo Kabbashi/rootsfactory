@@ -255,6 +255,53 @@ class CoThinker
     }
 
     /**
+     * Read PDF text from a Filament FileUpload state, whether it is a freshly
+     * uploaded temp file or an already-stored public path. Empty when there is
+     * no readable PDF.
+     */
+    public function pdfTextFromUpload(mixed $state, int $maxChars = 8000): string
+    {
+        $file = is_array($state) ? reset($state) : $state;
+
+        if ($file instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+            return $file->getMimeType() === 'application/pdf'
+                ? $this->extractPdfText($file->getRealPath(), $maxChars)
+                : '';
+        }
+
+        if (is_string($file) && str_ends_with(strtolower($file), '.pdf')
+            && \Illuminate\Support\Facades\Storage::disk('public')->exists($file)) {
+            return $this->extractPdfText(\Illuminate\Support\Facades\Storage::disk('public')->path($file), $maxChars);
+        }
+
+        return '';
+    }
+
+    /**
+     * A general assist: given an instruction and some context (plus optional
+     * PDF text), draft honest, source-faithful Markdown. Used by the Alice
+     * buttons on concepts and projects.
+     */
+    public function assist(string $instruction, string $context, string $pdfText = '', int $maxTokens = 900): string
+    {
+        $material = trim($context);
+        if ($pdfText !== '') {
+            $material .= "\n\nAttached document text (excerpt):\n" . $pdfText;
+        }
+
+        return $this->chat([
+            ['role' => 'system', 'content' => self::SYSTEM],
+            ['role' => 'user', 'content' =>
+                $instruction . "\n\n"
+                . "Base your writing ONLY on the material below and well-established general knowledge; "
+                . "never invent statistics, figures, dates, named organisations, places or citations that "
+                . "are not supported. Write in Markdown.\n\n"
+                . "MATERIAL:\n" . ($material !== '' ? $material : '(little provided yet)'),
+            ],
+        ], maxTokens: $maxTokens);
+    }
+
+    /**
      * Pull readable text out of a PDF so Alice can summarise the real content,
      * not just the metadata. Returns a trimmed excerpt (empty on failure).
      */

@@ -13,16 +13,23 @@ use App\Filament\Resources\ResearchProjects\RelationManagers\ReferencesRelationM
 use App\Filament\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\TeamRelationManager;
 use App\Models\ResearchProject;
+use App\Services\CoThinker;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -61,6 +68,50 @@ class ResearchProjectResource extends Resource
                 Textarea::make('methodology')->rows(3)->columnSpanFull(),
                 Textarea::make('data_collection')->label('Data collection')->rows(3)->columnSpanFull(),
                 Textarea::make('findings')->rows(3)->columnSpanFull(),
+            ])->collapsible(),
+            Section::make('Alice AI')->schema([
+                FileUpload::make('alice_pdf')
+                    ->label('Analyse a PDF (optional)')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->maxSize(20480)
+                    ->dehydrated(false)
+                    ->helperText('Attach a document for Alice to read, then draft findings from it.')
+                    ->columnSpanFull(),
+                Actions::make([
+                    Action::make('askAlice')
+                        ->label('Analyse & draft findings with Alice')
+                        ->icon('heroicon-m-sparkles')
+                        ->color('primary')
+                        ->action(function (Get $get, Set $set): void {
+                            $context = "Research project: " . ($get('title') ?: '(untitled)') . "\n"
+                                . ($get('summary') ? "Summary: {$get('summary')}\n" : '')
+                                . ($get('objectives') ? "Objectives: {$get('objectives')}\n" : '')
+                                . ($get('methodology') ? "Methodology: {$get('methodology')}\n" : '')
+                                . "Existing findings:\n" . ($get('findings') ?: '(none yet)');
+
+                            try {
+                                $pdf = app(CoThinker::class)->pdfTextFromUpload($get('alice_pdf'));
+                                $draft = app(CoThinker::class)->assist(
+                                    'You are Alice, supporting a research project. Analyse the attached document and '
+                                    . 'the project context, then draft concise, structured findings and key points '
+                                    . 'the team can refine. Attribute claims to the document; do not overstate.',
+                                    $context,
+                                    $pdf,
+                                );
+                            } catch (\Throwable $e) {
+                                report($e);
+                                Notification::make()->title('Alice is unavailable right now')->danger()->send();
+
+                                return;
+                            }
+
+                            $existing = trim((string) $get('findings'));
+                            $set('findings', $existing === '' ? $draft : $existing . "\n\n---\n\n" . $draft);
+
+                            Notification::make()->title('Alice drafted findings')
+                                ->body('Review and edit before saving.')->success()->send();
+                        }),
+                ])->columnSpanFull(),
             ])->collapsible(),
         ]);
     }

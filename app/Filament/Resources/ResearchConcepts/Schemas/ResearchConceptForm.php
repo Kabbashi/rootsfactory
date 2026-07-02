@@ -5,12 +5,20 @@ namespace App\Filament\Resources\ResearchConcepts\Schemas;
 use App\Models\Category;
 use App\Models\Keyword;
 use App\Models\ResearchConcept;
+use App\Models\Topic;
+use App\Services\CoThinker;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class ResearchConceptForm
@@ -84,6 +92,47 @@ class ResearchConceptForm
                         : '—')
                     ->visible(fn (?ResearchConcept $record): bool => (bool) $record?->isFromPublicIdea())
                     ->columnSpanFull(),
+                FileUpload::make('alice_pdf')
+                    ->label('Alice: analyse a PDF (optional)')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->maxSize(20480)
+                    ->dehydrated(false)
+                    ->helperText('Attach a PDF for Alice to read, then use “Research & expand with Alice”.')
+                    ->columnSpanFull(),
+                Actions::make([
+                    Action::make('askAlice')
+                        ->label('Research & expand with Alice')
+                        ->icon('heroicon-m-sparkles')
+                        ->color('primary')
+                        ->action(function (Get $get, Set $set): void {
+                            $topic = $get('topic_id') ? Topic::find($get('topic_id'))?->name : null;
+                            $context = "Research concept title: " . ($get('title') ?: '(untitled)') . "\n"
+                                . ($topic ? "Topic: {$topic}\n" : '')
+                                . "Current content:\n" . ($get('body') ?: '(empty)');
+
+                            try {
+                                $pdf = app(CoThinker::class)->pdfTextFromUpload($get('alice_pdf'));
+                                $draft = app(CoThinker::class)->assist(
+                                    'You are Alice, helping shape a research concept. Research the topic and expand '
+                                    . 'the concept into a fuller, well-structured draft (problem, proposal, approach, '
+                                    . 'open questions). Keep it a proposal, not a claim of fact.',
+                                    $context,
+                                    $pdf,
+                                );
+                            } catch (\Throwable $e) {
+                                report($e);
+                                Notification::make()->title('Alice is unavailable right now')->danger()->send();
+
+                                return;
+                            }
+
+                            $existing = trim((string) $get('body'));
+                            $set('body', $existing === '' ? $draft : $existing . "\n\n---\n\n" . $draft);
+
+                            Notification::make()->title('Alice added a draft to the content')
+                                ->body('Review and edit before saving.')->success()->send();
+                        }),
+                ])->columnSpanFull(),
                 MarkdownEditor::make('body')
                     ->label('Content')
                     ->columnSpanFull(),
