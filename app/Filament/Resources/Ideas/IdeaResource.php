@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Ideas;
 
 use App\Filament\RelationManagers\CommentsRelationManager;
+use App\Filament\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\Ideas\Pages\CreateIdea;
 use App\Filament\Resources\Ideas\Pages\EditIdea;
 use App\Filament\Resources\Ideas\Pages\ListIdeas;
@@ -52,6 +53,7 @@ class IdeaResource extends Resource
     public static function getRelations(): array
     {
         return [
+            TasksRelationManager::class,
             CommentsRelationManager::class,
             CollaborationOffersRelationManager::class,
         ];

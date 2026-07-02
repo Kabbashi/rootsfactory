@@ -6,6 +6,7 @@ use App\Filament\Resources\ResearchConcepts\Pages\CreateResearchConcept;
 use App\Filament\Resources\ResearchConcepts\Pages\EditResearchConcept;
 use App\Filament\Resources\ResearchConcepts\Pages\ListResearchConcepts;
 use App\Filament\RelationManagers\CommentsRelationManager;
+use App\Filament\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ResearchConcepts\Schemas\ResearchConceptForm;
 use App\Filament\Resources\ResearchConcepts\Tables\ResearchConceptsTable;
 use App\Models\ResearchConcept;
@@ -42,6 +43,7 @@ class ResearchConceptResource extends Resource
     public static function getRelations(): array
     {
         return [
+            TasksRelationManager::class,
             CommentsRelationManager::class,
             \App\Filament\Resources\Ideas\RelationManagers\CollaborationOffersRelationManager::class,
         ];

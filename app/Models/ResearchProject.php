@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasCategories;
+use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ use Illuminate\Support\Str;
 class ResearchProject extends Model
 {
     use HasCategories;
+    use HasTasks;
 
     /** Kind of research, mapped to its human label. */
     public const KINDS = [
@@ -114,11 +116,6 @@ class ResearchProject extends Model
     public function publications(): HasMany
     {
         return $this->hasMany(Publication::class);
-    }
-
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class);
     }
 
     public function references(): HasMany

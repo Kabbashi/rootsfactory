@@ -6,6 +6,7 @@ use App\Jobs\GenerateAiInsight;
 use App\Models\Concerns\HasCategories;
 use App\Models\Concerns\HasKeywords;
 use App\Models\Concerns\HasSocialInteractions;
+use App\Models\Concerns\HasTasks;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class ResearchConcept extends Model
     use HasCategories;
     use HasKeywords;
     use HasSocialInteractions;
+    use HasTasks;
 
     public const STATUSES = ['draft', 'in_discussion', 'final'];
 

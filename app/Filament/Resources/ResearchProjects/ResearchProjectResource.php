@@ -10,7 +10,7 @@ use App\Filament\Resources\ResearchProjects\RelationManagers\DataItemsRelationMa
 use App\Filament\Resources\ResearchProjects\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\EvidenceRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\ReferencesRelationManager;
-use App\Filament\Resources\ResearchProjects\RelationManagers\TasksRelationManager;
+use App\Filament\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\ResearchProjects\RelationManagers\TeamRelationManager;
 use App\Models\ResearchProject;
 use BackedEnum;
