@@ -21,5 +21,6 @@ class CreateIdea extends CreateRecord
     protected function afterCreate(): void
     {
         Keyword::syncNames($this->record, $this->data['keyword_names'] ?? []);
+        $this->record->syncSymmetricCrossReferences();
     }
 }

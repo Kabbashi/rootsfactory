@@ -56,6 +56,41 @@ class Idea extends Model
         )->withTimestamps();
     }
 
+    /**
+     * Keep cross-references undirected: if this idea links to another, make
+     * sure the other links back too, and drop reverse links that were removed.
+     * Call after the form has synced this idea's own outgoing links.
+     */
+    public function syncSymmetricCrossReferences(): void
+    {
+        $outgoing = \Illuminate\Support\Facades\DB::table('idea_cross_references')
+            ->where('idea_id', $this->id)
+            ->pluck('related_idea_id')
+            ->all();
+
+        foreach ($outgoing as $relatedId) {
+            $exists = \Illuminate\Support\Facades\DB::table('idea_cross_references')
+                ->where('idea_id', $relatedId)
+                ->where('related_idea_id', $this->id)
+                ->exists();
+
+            if (! $exists) {
+                \Illuminate\Support\Facades\DB::table('idea_cross_references')->insert([
+                    'idea_id' => $relatedId,
+                    'related_idea_id' => $this->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        // Remove reverse links to ideas no longer among this idea's references.
+        \Illuminate\Support\Facades\DB::table('idea_cross_references')
+            ->where('related_idea_id', $this->id)
+            ->whereNotIn('idea_id', $outgoing ?: [-1])
+            ->delete();
+    }
+
     public function isPublic(): bool
     {
         return $this->visibility === 'public';

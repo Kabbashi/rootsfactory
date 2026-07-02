@@ -32,6 +32,7 @@ class EditIdea extends EditRecord
     protected function afterSave(): void
     {
         Keyword::syncNames($this->record, $this->data['keyword_names'] ?? []);
+        $this->record->syncSymmetricCrossReferences();
     }
 
     protected function getHeaderActions(): array
