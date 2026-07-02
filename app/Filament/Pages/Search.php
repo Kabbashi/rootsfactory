@@ -65,7 +65,7 @@ class Search extends Page
                 fn (ResearchProject $r) => $r->summary,
                 fn (ResearchProject $r) => ResearchProjectResource::getUrl('edit', ['record' => $r]),
             ),
-            $this->group('Knowledge Library', Document::query(), $q,
+            $this->group('Knowledge Database', Document::query(), $q,
                 fn (Document $r) => $r->title ?: $r->original_name,
                 fn (Document $r) => $r->description,
                 fn (Document $r) => DocumentResource::getUrl('edit', ['record' => $r]),

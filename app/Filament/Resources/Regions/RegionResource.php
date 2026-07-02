@@ -20,13 +20,13 @@ class RegionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedGlobeAlt;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Help & Taxonomy';
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Hub';
 
-    protected static ?string $modelLabel = 'Region';
+    protected static ?string $modelLabel = 'Country / Region';
 
-    protected static ?string $pluralModelLabel = 'Regions';
+    protected static ?string $pluralModelLabel = 'Countries / Regions';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

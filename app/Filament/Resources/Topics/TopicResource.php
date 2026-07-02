@@ -21,13 +21,13 @@ class TopicResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Help & Taxonomy';
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Hub';
 
     protected static ?string $modelLabel = 'Topic';
 
     protected static ?string $pluralModelLabel = 'Topics';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

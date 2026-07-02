@@ -53,9 +53,9 @@ class WorkspacePanelProvider extends PanelProvider
                 'Data Hub',
                 'Editorial Office',
                 'Publications',
-                'Knowledge Library',
+                'Knowledge Database',
                 'Community',
-                'Help & Taxonomy',
+                'Help',
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

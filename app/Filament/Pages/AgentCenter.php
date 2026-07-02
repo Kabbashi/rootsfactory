@@ -20,9 +20,9 @@ class AgentCenter extends Page
 
     protected static string|\UnitEnum|null $navigationGroup = 'Editorial Office';
 
-    protected static ?string $navigationLabel = 'AI Assistant';
+    protected static ?string $navigationLabel = 'Alice AI';
 
-    protected static ?string $title = 'AI Assistant';
+    protected static ?string $title = 'Alice AI';
 
     protected static ?int $navigationSort = 2;
 

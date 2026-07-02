@@ -21,11 +21,11 @@ class KeywordResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHashtag;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Help & Taxonomy';
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Hub';
 
     protected static ?string $modelLabel = 'Keyword';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {
@@ -43,11 +43,6 @@ class KeywordResource extends Resource
             ->defaultSort('name')
             ->columns([
                 TextColumn::make('name')->searchable()->weight('medium'),
-                TextColumn::make('uses')
-                    ->label('Used by')
-                    ->state(fn (Keyword $record): int => $record->timesUsed())
-                    ->alignCenter()
-                    ->badge(),
             ])
             ->recordActions([
                 EditAction::make(),

@@ -20,13 +20,13 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Help & Taxonomy';
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Hub';
 
     protected static ?string $modelLabel = 'Category';
 
     protected static ?string $pluralModelLabel = 'Categories';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

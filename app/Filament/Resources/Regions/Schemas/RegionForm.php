@@ -13,10 +13,10 @@ class RegionForm
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->label('Name')
+                    ->label('Country / Region')
                     ->required()
                     ->maxLength(100)
-                    ->helperText('e.g. Sahel, East Africa, Global'),
+                    ->helperText('The country or region under study — a single country (e.g. Kenya, Jordan) or a wider region (e.g. Sahel, East Africa). Not a team member\'s home region.'),
                 Textarea::make('description')
                     ->label('Description')
                     ->rows(3)

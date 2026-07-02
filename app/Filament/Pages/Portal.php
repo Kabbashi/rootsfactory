@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Resources\DataItems\DataItemResource;
 use App\Filament\Resources\Documents\DocumentResource;
+use App\Filament\Resources\Faqs\FaqResource;
 use App\Filament\Resources\Publications\PublicationResource;
 use App\Filament\Resources\ResearchProjects\ResearchProjectResource;
 use App\Filament\Resources\Users\UserResource;
@@ -37,26 +38,26 @@ class Portal extends Page
     {
         return [
             [
-                'name' => 'Research',
-                'description' => 'Projects, field studies, baselines and evaluations.',
+                'name' => 'Research Hub',
+                'description' => 'Ideas, concepts and research projects.',
                 'icon' => 'heroicon-o-beaker',
                 'url' => ResearchProjectResource::getUrl(),
             ],
             [
-                'name' => 'Publications',
-                'description' => 'Papers, briefs, essays — with versions and review.',
-                'icon' => 'heroicon-o-document-text',
-                'url' => PublicationResource::getUrl(),
-            ],
-            [
                 'name' => 'Data Hub',
-                'description' => 'Transcripts, field notes and qualitative coding.',
+                'description' => 'Transcripts, field notes and qualitative coding. Overview of categories, keywords, topics and country/region.',
                 'icon' => 'heroicon-o-clipboard-document-list',
                 'url' => DataItemResource::getUrl(),
             ],
             [
-                'name' => 'Knowledge Library',
-                'description' => 'Methods, instruments, frameworks and templates.',
+                'name' => 'Publications',
+                'description' => 'Papers, briefs, essays, baselines — final versions for publishing.',
+                'icon' => 'heroicon-o-document-text',
+                'url' => PublicationResource::getUrl(),
+            ],
+            [
+                'name' => 'Knowledge Database',
+                'description' => 'Knowledge management, references, metadata, methods, frameworks and templates.',
                 'icon' => 'heroicon-o-book-open',
                 'url' => DocumentResource::getUrl(),
             ],
@@ -68,19 +69,19 @@ class Portal extends Page
             ],
             [
                 'name' => 'Editorial Office',
-                'description' => 'The path from draft to published.',
+                'description' => 'Workflow from idea generation to concept and research project. AI-assisted.',
                 'icon' => 'heroicon-o-clipboard-document-check',
                 'url' => EditorialOffice::getUrl(),
             ],
             [
-                'name' => 'Research Q&A',
-                'description' => 'Questions answered from our published briefs.',
-                'icon' => 'heroicon-o-chat-bubble-left-right',
-                'url' => url('/ask'),
+                'name' => 'FAQ',
+                'description' => 'How to think and write with R2N.',
+                'icon' => 'heroicon-o-question-mark-circle',
+                'url' => FaqResource::getUrl(),
             ],
             [
-                'name' => 'AI Assistant',
-                'description' => 'Think with assistive AI — never decides for you.',
+                'name' => 'Alice AI',
+                'description' => 'Build your knowledge database with Alice AI. Automatic metadata extraction, summary, abstracts, suggested keywords, categories and topics.',
                 'icon' => 'heroicon-o-cpu-chip',
                 'url' => AgentCenter::getUrl(),
             ],
