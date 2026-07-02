@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ResearchConcepts\Pages;
 
 use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
+use App\Filament\Resources\ResearchProjects\ResearchProjectResource;
 use App\Jobs\GenerateAiInsight;
 use App\Models\Keyword;
 use App\Services\CoThinker;
@@ -111,6 +112,27 @@ class EditResearchConcept extends EditRecord
                     ->title('Your offer to collaborate was sent')
                     ->success()
                     ->send();
+            });
+
+        // Hand-off: grow a mature concept into a Research Project. Available to
+        // the concept's owner and editors, even when the concept is Final —
+        // spawning a project is not editing the concept.
+        $actions[] = Action::make('spawnProject')
+            ->label('Grow into a Research Project')
+            ->icon('heroicon-m-rocket-launch')
+            ->color('primary')
+            ->visible(fn (): bool => $this->record->user_id === auth()->id() || (auth()->user()?->isEditor() ?? false))
+            ->requiresConfirmation()
+            ->modalDescription('Create a Research Project from this concept, carrying over its title, text and categories. If a project already exists for this concept, you’ll be taken to it. The concept itself stays unchanged.')
+            ->action(function (): void {
+                $project = $this->record->spawnResearchProject();
+
+                Notification::make()
+                    ->title($project->wasRecentlyCreated ? 'Project created from this concept' : 'Opened the existing project')
+                    ->success()
+                    ->send();
+
+                $this->redirect(ResearchProjectResource::getUrl('edit', ['record' => $project]));
             });
 
         if (! $this->isLocked()) {
