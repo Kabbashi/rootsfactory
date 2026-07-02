@@ -33,11 +33,12 @@ class IdeasTable
                 TextColumn::make('user.name')
                     ->label('Author')
                     ->toggleable(),
-                TextColumn::make('categories_count')
+                TextColumn::make('categories.name')
                     ->label('Categories')
-                    ->counts('categories')
-                    ->alignCenter()
                     ->badge()
+                    ->color('gray')
+                    ->separator(',')
+                    ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('created_at')
                     ->since()

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Ideas\Pages;
 
+use App\Filament\Pages\IdeaMap;
 use App\Filament\Resources\Ideas\IdeaResource;
 use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
 use App\Models\Idea;
@@ -36,6 +37,11 @@ class EditIdea extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('mindMap')
+                ->label('Mind map')
+                ->icon('heroicon-m-share')
+                ->color('gray')
+                ->url(fn (): string => IdeaMap::getUrl() . '?idea=' . $this->record->id),
             Action::make('coreFromImage')
                 ->label('Suggest core statement from image')
                 ->icon('heroicon-m-sparkles')
