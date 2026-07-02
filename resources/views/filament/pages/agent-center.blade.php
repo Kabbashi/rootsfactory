@@ -1,7 +1,8 @@
 <x-filament-panels::page>
     <p class="rf-agent__lead">
-        Think out loud with Roots Factory AI. Ask a question, sketch an argument, or draft something —
-        then keep the reply as a draft idea if it's worth it. Nothing is published automatically.
+        Think out loud with Alice AI. Ask a question, sketch an argument, or draft something — then save
+        the reply where you want it: as a new idea, a research concept, or a project. Nothing is published
+        automatically.
     </p>
 
     <div class="rf-agent__box">
@@ -9,12 +10,35 @@
             wire:model="prompt"
             rows="5"
             class="rf-agent__input"
-            placeholder="e.g. What are the trade-offs of pooled funds vs. direct grants for smallholder farmers?"
+            placeholder="e.g. Brainstorm an idea about pooled funds for smallholder farmers — or draft a concept based on an existing idea."
         ></textarea>
+
+        <div class="rf-agent__controls">
+            <label class="rf-agent__ctrl">
+                <span class="rf-agent__ctrl-label">Save result to</span>
+                <select wire:model.live="destination" class="rf-agent__select">
+                    @foreach ($this->destinations() as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </label>
+
+            @if ($destination === 'concept')
+                <label class="rf-agent__ctrl">
+                    <span class="rf-agent__ctrl-label">Based on idea (optional)</span>
+                    <select wire:model.live="basedOnIdeaId" class="rf-agent__select">
+                        <option value="">— none —</option>
+                        @foreach ($this->ideaOptions() as $id => $name)
+                            <option value="{{ $id }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+        </div>
 
         <div class="rf-agent__actions">
             <button type="button" wire:click="think" wire:loading.attr="disabled" class="rf-btn rf-btn--primary">
-                <span wire:loading.remove wire:target="think">Think with AI</span>
+                <span wire:loading.remove wire:target="think">Think with Alice</span>
                 <span wire:loading wire:target="think">Thinking…</span>
             </button>
         </div>
@@ -23,9 +47,9 @@
     @if (filled($answer))
         <div class="rf-agent__answer">
             <div class="rf-agent__answer-head">
-                <span class="rf-agent__badge">Roots Factory AI</span>
-                <button type="button" wire:click="saveAsIdea" class="rf-btn rf-btn--ghost">
-                    Save as draft idea
+                <span class="rf-agent__badge">Alice AI</span>
+                <button type="button" wire:click="saveDraft" class="rf-btn rf-btn--ghost">
+                    Save draft to “{{ $this->destinations()[$destination] ?? 'Idea Pool' }}”
                 </button>
             </div>
             <div class="rf-prose">
@@ -47,6 +71,15 @@
         }
         .dark .rf-agent__input { border-color: rgb(75 85 99); }
         .rf-agent__input:focus { outline: 2px solid rgb(16 185 129); outline-offset: 1px; }
+        .rf-agent__controls { margin-top: .75rem; display: flex; flex-wrap: wrap; gap: 1rem; }
+        .rf-agent__ctrl { display: flex; flex-direction: column; gap: .25rem; min-width: 14rem; }
+        .rf-agent__ctrl-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: rgb(107 114 128); }
+        .rf-agent__select {
+            border: 1px solid rgb(209 213 219); border-radius: .5rem; padding: .45rem .6rem; font-size: .85rem;
+            background: transparent; color: inherit;
+        }
+        .dark .rf-agent__select { border-color: rgb(75 85 99); }
+        .dark .rf-agent__select option { color: #111; }
         .rf-agent__actions { margin-top: .75rem; display: flex; gap: .5rem; }
         .rf-btn {
             border-radius: .5rem; padding: .5rem .9rem; font-size: .85rem; font-weight: 600; cursor: pointer;

@@ -2,7 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\Ideas\IdeaResource;
+use App\Filament\Resources\ResearchConcepts\ResearchConceptResource;
+use App\Filament\Resources\ResearchProjects\ResearchProjectResource;
+use App\Models\Idea;
 use App\Models\ResearchConcept;
+use App\Models\ResearchProject;
 use App\Services\CoThinker;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -10,9 +15,10 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Agent Center — an interactive workspace to think with Roots Factory AI.
- * Ask a question or sketch something, get a reply, and optionally keep it as
- * a draft idea (never published automatically — a human reviews first).
+ * Alice AI — an interactive workspace to think with Roots Factory AI. Ask a
+ * question or sketch something, get a reply, and save the draft where you want
+ * it: as a new idea in the Idea Pool, a Research Concept (optionally based on an
+ * existing idea), or a Research Project. Nothing is published automatically.
  */
 class AgentCenter extends Page
 {
@@ -32,7 +38,29 @@ class AgentCenter extends Page
 
     public ?string $answer = null;
 
-    /** Ask the co-thinker. Runs synchronously — the reply shows inline. */
+    /** Where Alice's draft should go: idea | concept | project. */
+    public string $destination = 'idea';
+
+    /** Optional idea (by id) a concept should be based on. */
+    public ?int $basedOnIdeaId = null;
+
+    /** Destinations offered in the dropdown. */
+    public function destinations(): array
+    {
+        return [
+            'idea' => 'New idea (Idea Pool)',
+            'concept' => 'New research concept',
+            'project' => 'New research project',
+        ];
+    }
+
+    /** Visible ideas, to base a concept on. */
+    public function ideaOptions(): array
+    {
+        return Idea::query()->visibleTo(auth()->id())->orderBy('name')->pluck('name', 'id')->all();
+    }
+
+    /** Ask Alice. Runs synchronously — the reply shows inline. */
     public function think(): void
     {
         $prompt = trim($this->prompt);
@@ -43,41 +71,101 @@ class AgentCenter extends Page
             return;
         }
 
+        // When basing a concept on an existing idea, give Alice its context.
+        if ($this->destination === 'concept' && $this->basedOnIdeaId) {
+            $idea = Idea::find($this->basedOnIdeaId);
+            if ($idea) {
+                $prompt = "Base your thinking on this existing idea from our pool:\n"
+                    . "Idea: {$idea->name}\n"
+                    . ($idea->core_statement ? "Core statement: {$idea->core_statement}\n" : '')
+                    . ($idea->description ? "Description: {$idea->description}\n" : '')
+                    . "\nRequest:\n" . $prompt;
+            }
+        }
+
         try {
             $this->answer = app(CoThinker::class)->brainstorm($prompt);
         } catch (\Throwable $e) {
             report($e);
             Notification::make()
-                ->title('AI is unavailable right now')
+                ->title('Alice is unavailable right now')
                 ->body('Could not reach the AI gateway. Please try again later.')
                 ->danger()
                 ->send();
         }
     }
 
-    /** Keep the reply as a draft idea for the team to refine and discuss. */
-    public function saveAsIdea(): void
+    /** Save Alice's reply as a draft in the chosen destination. */
+    public function saveDraft(): void
     {
         if (blank($this->answer)) {
             return;
         }
 
-        $idea = ResearchConcept::create([
+        match ($this->destination) {
+            'concept' => $this->saveAsConcept(),
+            'project' => $this->saveAsProject(),
+            default => $this->saveAsIdea(),
+        };
+    }
+
+    private function titleFromPrompt(): string
+    {
+        return str(trim($this->prompt))->limit(120)->value() ?: 'Untitled draft';
+    }
+
+    private function saveAsIdea(): void
+    {
+        $idea = Idea::create([
             'user_id' => auth()->id(),
-            'title' => str(trim($this->prompt))->limit(120)->value() ?: 'Untitled draft',
-            'body' => $this->answer,
-            'status' => 'draft',
-            'type' => 'note',
+            'name' => str(trim($this->prompt))->limit(80)->value() ?: 'Untitled idea',
+            'core_statement' => str(trim($this->prompt))->limit(200)->value(),
+            'description' => $this->answer,
+            'visibility' => 'personal',
         ]);
 
-        Notification::make()
-            ->title('Saved as a draft idea')
-            ->body('Find it in the Innovation Hub to refine, discuss and (later) publish.')
-            ->success()
-            ->send();
+        $this->notifyAndOpen('Saved as a draft idea', IdeaResource::getUrl('edit', ['record' => $idea]));
+    }
 
-        $this->reset(['prompt', 'answer']);
+    private function saveAsConcept(): void
+    {
+        $baseIdea = $this->basedOnIdeaId ? Idea::find($this->basedOnIdeaId) : null;
 
-        $this->redirect(\App\Filament\Resources\ResearchConcepts\ResearchConceptResource::getUrl('edit', ['record' => $idea]));
+        $concept = ResearchConcept::create([
+            'user_id' => auth()->id(),
+            'origin_idea_id' => $baseIdea?->id,
+            'title' => $baseIdea?->name ?: $this->titleFromPrompt(),
+            'body' => $this->answer,
+            'type' => 'brief',
+            'status' => 'draft',
+        ]);
+
+        // Carry over the idea's categories and keywords, like "move to concept".
+        if ($baseIdea) {
+            $concept->categories()->sync($baseIdea->categories->pluck('id'));
+            $concept->keywords()->sync($baseIdea->keywords->pluck('id'));
+        }
+
+        $this->notifyAndOpen('Saved as a draft concept', ResearchConceptResource::getUrl('edit', ['record' => $concept]));
+    }
+
+    private function saveAsProject(): void
+    {
+        $project = ResearchProject::create([
+            'lead_user_id' => auth()->id(),
+            'title' => $this->titleFromPrompt(),
+            'kind' => 'project',
+            'status' => 'planned',
+            'summary' => $this->answer,
+        ]);
+
+        $this->notifyAndOpen('Saved as a draft project', ResearchProjectResource::getUrl('edit', ['record' => $project]));
+    }
+
+    private function notifyAndOpen(string $title, string $url): void
+    {
+        Notification::make()->title($title)->body('Opened the new draft — review and refine it.')->success()->send();
+        $this->reset(['prompt', 'answer', 'basedOnIdeaId']);
+        $this->redirect($url);
     }
 }
