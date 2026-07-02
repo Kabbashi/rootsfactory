@@ -36,14 +36,15 @@ class Publication extends Model
     ];
 
     protected $fillable = [
-        'research_project_id', 'title', 'slug', 'type', 'status', 'language',
+        'research_project_id', 'topic_id', 'region_id', 'title', 'slug', 'type', 'status', 'language',
         'abstract', 'body', 'doi', 'citation', 'downloads', 'current_version_id',
-        'published_at',
+        'published_at', 'path', 'original_name', 'mime', 'size', 'published_in',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'downloads' => 'integer',
+        'published_in' => 'array',
     ];
 
     public function getRouteKeyName(): string
@@ -98,6 +99,39 @@ class Publication extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(ResearchProject::class, 'research_project_id');
+    }
+
+    public function topic(): BelongsTo
+    {
+        return $this->belongsTo(Topic::class);
+    }
+
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    /** Public URL to the attached document, if any. */
+    public function url(): ?string
+    {
+        return $this->path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->path) : null;
+    }
+
+    /**
+     * Authors as "Lastname, Firstname", comma-separated. Falls back to the full
+     * name when it cannot be split.
+     */
+    public function authorLine(): string
+    {
+        return $this->authors->map(function (User $author): string {
+            $parts = preg_split('/\s+/', trim($author->name)) ?: [];
+            if (count($parts) < 2) {
+                return $author->name;
+            }
+            $last = array_pop($parts);
+
+            return $last . ', ' . implode(' ', $parts);
+        })->implode('; ') ?: '—';
     }
 
     public function authors(): BelongsToMany
